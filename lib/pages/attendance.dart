@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:lekkadapatti/utils/gheet_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert'; 
+import 'dart:convert';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -111,6 +112,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    fetchGsheet();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Attendance'),
