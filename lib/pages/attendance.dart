@@ -18,12 +18,42 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     'Jannu'
   ];
 
-  final Map<String, String> attendance = {};
+  Map<String, String> attendance = {};
+  // Map to store attendance data with date as the key
+  Map<String, Map<String, String>> attendanceData = {};
+
+  DateTime currentDate = DateTime.now();
 
   void _setAttendance(String name, String status) {
     setState(() {
       attendance[name] = status;
     });
+  }
+
+  void _goToPreviousDay() {
+    setState(() {
+      // Save current day's attendance before changing the date and update the date
+      attendanceData[_formattedDate()] = attendance;
+      currentDate = currentDate.subtract(const Duration(days: 1));
+      attendance = attendanceData[_formattedDate()] ?? {};
+    });
+  }
+
+  void _goToNextDay() {
+    if (currentDate.year == DateTime.now().year &&
+        currentDate.month == DateTime.now().month &&
+        currentDate.day == DateTime.now().day) return;
+
+    setState(() {
+      // Save current day's attendance before changing the date and update the date
+      attendanceData[_formattedDate()] = attendance;
+      currentDate = currentDate.add(const Duration(days: 1));
+      attendance = attendanceData[_formattedDate()] ?? {};
+    });
+  }
+
+  String _formattedDate() {
+    return "${currentDate.day}-${currentDate.month}-${currentDate.year}";
   }
 
   @override
@@ -32,33 +62,66 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       appBar: AppBar(
         title: const Text('Attendance'),
       ),
-      body: ListView.builder(
-        itemCount: names.length,
-        itemBuilder: (context, index) {
-          String name = names[index];
-          return Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-            child: Card(
-              elevation: 5,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: ListTile(
-                title: Text(
-                  name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                subtitle: AttendanceOptions(
-                  name: name,
-                  currentStatus: attendance[name] ?? '',
-                  onStatusChanged: _setAttendance,
-                ),
-              ),
+      body: Column(
+        children: [
+          _buildDateNavigation(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: names.length,
+              itemBuilder: (context, index) {
+                String name = names[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 16.0),
+                  child: Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: AttendanceOptions(
+                        name: name,
+                        currentStatus: attendance[name] ?? '',
+                        onStatusChanged: _setAttendance,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateNavigation() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _goToPreviousDay,
+          ),
+          Text(
+            _formattedDate(),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          IconButton(
+            icon: const Icon(Icons.arrow_forward),
+            onPressed: _goToNextDay,
+            disabledColor: Colors.grey,
+            color: currentDate.isAtSameMomentAs(DateTime.now())
+                ? Colors.grey
+                : null,
+          ),
+        ],
       ),
     );
   }
@@ -93,7 +156,7 @@ class AttendanceOptions extends StatelessWidget {
     return GestureDetector(
       onTap: () => onStatusChanged(name, status),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color:
               currentStatus == status ? color.withOpacity(0.7) : Colors.white,
