@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert'; 
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -6,6 +8,16 @@ class AttendanceScreen extends StatefulWidget {
   @override
   _AttendanceScreenState createState() => _AttendanceScreenState();
 }
+
+final List<String> DaysINKannada = [
+  'ಭಾನುವಾರ',
+  'ಸೋಮವಾರ',
+  'ಮಂಗಳವಾರ',
+  'ಬುಧವಾರ',
+  'ಗುರುವಾರ',
+  'ಶುಕ್ರವಾರ',
+  'ಶನಿವಾರ'
+];
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
   final List<String> names = [
@@ -19,24 +31,48 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   ];
 
   Map<String, String> attendance = {};
-  // Map to store attendance data with date as the key
   Map<String, Map<String, String>> attendanceData = {};
 
   DateTime currentDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAttendanceData();
+  }
+
+  Future<void> _loadAttendanceData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedAttendanceData = prefs.getString('attendanceData');
+    if (savedAttendanceData != null) {
+      setState(() {
+        attendanceData = Map<String, Map<String, String>>.from(
+            jsonDecode(savedAttendanceData).map((key, value) =>
+                MapEntry(key, Map<String, String>.from(value))));
+        attendance = attendanceData[_formattedDate()] ?? {};
+      });
+    }
+  }
+
+  Future<void> _saveAttendanceData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('attendanceData', jsonEncode(attendanceData));
+  }
 
   void _setAttendance(String name, String status) {
     setState(() {
       attendance[name] = status;
     });
+    _saveAttendanceData();
   }
 
   void _goToPreviousDay() {
     setState(() {
-      // Save current day's attendance before changing the date and update the date
       attendanceData[_formattedDate()] = attendance;
       currentDate = currentDate.subtract(const Duration(days: 1));
       attendance = attendanceData[_formattedDate()] ?? {};
     });
+    _saveAttendanceData();
   }
 
   void _goToNextDay() {
@@ -45,15 +81,32 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         currentDate.day == DateTime.now().day) return;
 
     setState(() {
-      // Save current day's attendance before changing the date and update the date
       attendanceData[_formattedDate()] = attendance;
       currentDate = currentDate.add(const Duration(days: 1));
       attendance = attendanceData[_formattedDate()] ?? {};
     });
+    _saveAttendanceData();
   }
 
   String _formattedDate() {
-    return "${currentDate.day}-${currentDate.month}-${currentDate.year}";
+    return "${currentDate.day}/${currentDate.month}/${currentDate.year}";
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: currentDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != currentDate) {
+      setState(() {
+        attendanceData[_formattedDate()] = attendance;
+        currentDate = picked;
+        attendance = attendanceData[_formattedDate()] ?? {};
+      });
+      _saveAttendanceData();
+    }
   }
 
   @override
@@ -109,15 +162,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             icon: const Icon(Icons.arrow_back),
             onPressed: _goToPreviousDay,
           ),
-          Text(
-            _formattedDate(),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          GestureDetector(
+            onTap: () => _selectDate(context),
+            child: Text(
+              '${_formattedDate()} ${DaysINKannada[currentDate.weekday]}',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.arrow_forward),
             onPressed: _goToNextDay,
             disabledColor: Colors.grey,
-            color: currentDate.isAtSameMomentAs(DateTime.now())
+            color: currentDate.year == DateTime.now().year &&
+                    currentDate.month == DateTime.now().month &&
+                    currentDate.day == DateTime.now().day
                 ? Colors.grey
                 : null,
           ),
