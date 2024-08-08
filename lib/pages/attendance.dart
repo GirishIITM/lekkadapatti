@@ -9,7 +9,7 @@ class AttendanceScreen extends StatefulWidget {
   _AttendanceScreenState createState() => _AttendanceScreenState();
 }
 
-final List<String> DaysINKannada = [
+final List<String> daysINKannada = [
   'ಭಾನುವಾರ',
   'ಸೋಮವಾರ',
   'ಮಂಗಳವಾರ',
@@ -165,7 +165,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           GestureDetector(
             onTap: () => _selectDate(context),
             child: Text(
-              '${_formattedDate()} ${DaysINKannada[currentDate.weekday]}',
+              '${_formattedDate()} ${daysINKannada[currentDate.weekday]}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
