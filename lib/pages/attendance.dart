@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lekkadapatti/utils/gheet_sync.dart';
+import 'package:lekkadapatti/components/attendance_options.dart';
+import 'package:lekkadapatti/utils/date_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -45,13 +46,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Future<void> _loadAttendanceData() async {
     final prefs = await SharedPreferences.getInstance();
     final savedAttendanceData = prefs.getString('attendanceData');
-    print(savedAttendanceData);
     if (savedAttendanceData != null) {
       setState(() {
         attendanceData = Map<String, Map<String, String>>.from(
             jsonDecode(savedAttendanceData).map((key, value) =>
                 MapEntry(key, Map<String, String>.from(value))));
-        attendance = attendanceData[_formattedDate()] ?? {};
+        attendance = attendanceData[formattedDate(currentDate)] ?? {};
       });
     }
   }
@@ -70,9 +70,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   void _goToPreviousDay() {
     setState(() {
-      attendanceData[_formattedDate()] = attendance;
+      attendanceData[formattedDate(currentDate)] = attendance;
       currentDate = currentDate.subtract(const Duration(days: 1));
-      attendance = attendanceData[_formattedDate()] ?? {};
+      attendance = attendanceData[formattedDate(currentDate)] ?? {};
     });
     _saveAttendanceData();
   }
@@ -83,15 +83,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         currentDate.day == DateTime.now().day) return;
 
     setState(() {
-      attendanceData[_formattedDate()] = attendance;
+      attendanceData[formattedDate(currentDate)] = attendance;
       currentDate = currentDate.add(const Duration(days: 1));
-      attendance = attendanceData[_formattedDate()] ?? {};
+      attendance = attendanceData[formattedDate(currentDate)] ?? {};
     });
     _saveAttendanceData();
-  }
-
-  String _formattedDate() {
-    return "${currentDate.day}/${currentDate.month}/${currentDate.year}";
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -103,9 +99,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
     if (picked != null && picked != currentDate) {
       setState(() {
-        attendanceData[_formattedDate()] = attendance;
+        attendanceData[formattedDate(currentDate)] = attendance;
         currentDate = picked;
-        attendance = attendanceData[_formattedDate()] ?? {};
+        attendance = attendanceData[formattedDate(currentDate)] ?? {};
       });
       _saveAttendanceData();
     }
@@ -167,7 +163,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           GestureDetector(
             onTap: () => _selectDate(context),
             child: Text(
-              '${_formattedDate()} ${daysINKannada[currentDate.weekday]}',
+              '${formattedDate(currentDate)} ${daysINKannada[currentDate.weekday]}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -182,52 +178,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 : null,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class AttendanceOptions extends StatelessWidget {
-  final String name;
-  final String currentStatus;
-  final Function(String, String) onStatusChanged;
-
-  const AttendanceOptions({
-    super.key,
-    required this.name,
-    required this.currentStatus,
-    required this.onStatusChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildOption('Present', Colors.green),
-        _buildOption('Absent', Colors.red),
-        _buildOption('Half Day', Colors.orange),
-      ],
-    );
-  }
-
-  Widget _buildOption(String status, Color color) {
-    return GestureDetector(
-      onTap: () => onStatusChanged(name, status),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color:
-              currentStatus == status ? color.withOpacity(0.7) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color),
-        ),
-        child: Text(
-          status,
-          style:
-              TextStyle(color: currentStatus == status ? Colors.white : color),
-        ),
       ),
     );
   }

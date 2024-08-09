@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:gsheets/gsheets.dart';
 import 'package:flutter/services.dart';
+import 'package:lekkadapatti/utils/date_time.dart';
+import 'package:lekkadapatti/utils/logger.dart';
 
 Future<String> readJson() async {
   return await rootBundle.loadString('assets/g_sheet_creds.json');
@@ -32,7 +34,7 @@ Future<void> fetchGsheet() async {
     var data = await ss.sheets.first.values.map.allRows()
         as List<Map<String, dynamic>>?;
     final dataFormatted = data?.map((element) {
-      if (kDebugMode) print(element);
+      if (kDebugMode) logger(element);
       return {
         'Name': element['Name'],
         'Status': element['Status'],
@@ -40,11 +42,57 @@ Future<void> fetchGsheet() async {
       };
     }).toList();
 
-    if (kDebugMode) print(dataFormatted);
+    if (kDebugMode) logger(dataFormatted);
+  } on Exception catch (e) {
+    errorLogger('Error: $e');
+    logger('StackTrace: ${StackTrace.current}');
+  }
+}
+
+Future<void> insertData(DateTime date, Map<String, String> data) async {
+  try {
+    const spredadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
+    final credentials = await readJson();
+    final gsheets = GSheets(credentials);
+    final sheetName = getYearWeekFromDate(date);
+    final ss = await gsheets.spreadsheet(spredadSheetId);
+    var sheet = ss.worksheetByTitle(sheetName);
+
+    sheet ??= await ss.addWorksheet(sheetName);
+
+    final rowIndex = date.day;
+
+    await sheet.values.map.insertRow(rowIndex, data);
+
+    if (kDebugMode) logger('inserted row $rowIndex of sheet $sheetName.');
   } on Exception catch (e) {
     if (kDebugMode) {
-      print('Error: $e');
-      print('StackTrace: ${StackTrace.current}');
+      errorLogger("Error: $e");
+      logger("StackTrace: ${StackTrace.current}");
     }
+  }
+}
+
+Future<void> updateData(DateTime date, Map<String, String> data) async {
+  try {
+    const spredadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
+    final credentials = await readJson();
+    final gsheets = GSheets(credentials);
+    final sheetName = getYearWeekFromDate(date);
+    final ss = await gsheets.spreadsheet(spredadSheetId);
+    var sheet = ss.worksheetByTitle(sheetName);
+
+    if (sheet == null) {
+      logger('Sheet $sheetName does not exist.');
+      return;
+    }
+
+    final rowIndex = date.day;
+
+    await sheet.values.map.insertRow(rowIndex, data);
+
+    logger('Data updated in row $rowIndex of sheet $sheetName.');
+  } on Exception catch (e) {
+    errorLogger(e);
   }
 }
