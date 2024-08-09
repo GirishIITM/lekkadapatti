@@ -45,6 +45,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Future<void> _loadAttendanceData() async {
     final prefs = await SharedPreferences.getInstance();
     final savedAttendanceData = prefs.getString('attendanceData');
+    print(savedAttendanceData);
     if (savedAttendanceData != null) {
       setState(() {
         attendanceData = Map<String, Map<String, String>>.from(
@@ -112,7 +113,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    fetchGsheet();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Attendance'),

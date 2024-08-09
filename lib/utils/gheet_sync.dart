@@ -9,10 +9,6 @@ Future<String> readJson() async {
 const gsDateBase = 2209161600 / 86400;
 const gsDateFactor = 86400000;
 
-String _formattedDate(DateTime currentDate) {
-  return "${currentDate.day}/${currentDate.month}/${currentDate.year}";
-}
-
 double dateToGsheets(DateTime dateTime, {bool localTime = true}) {
   final offset = dateTime.millisecondsSinceEpoch / gsDateFactor;
   final shift = localTime ? dateTime.timeZoneOffset.inHours / 24 : 0;
@@ -33,17 +29,22 @@ Future<void> fetchGsheet() async {
     final gsheets = GSheets(credentials);
     final ss = await gsheets.spreadsheet(spredadSheetId);
 
-    final data = await ss.sheets.first.values.map.allRows()
+    var data = await ss.sheets.first.values.map.allRows()
         as List<Map<String, dynamic>>?;
-
-    data?.forEach((element) {
+    final dataFormatted = data?.map((element) {
       if (kDebugMode) print(element);
-      element["Date"] = dateFromGsheets(element["Date"]!)!;
-    });
-    if (kDebugMode) print(data);
+      return {
+        'Name': element['Name'],
+        'Status': element['Status'],
+        "Date": dateFromGsheets(element["Date"]),
+      };
+    }).toList();
 
-    if (kDebugMode) print(data);
+    if (kDebugMode) print(dataFormatted);
   } on Exception catch (e) {
-    if (kDebugMode) print(e);
+    if (kDebugMode) {
+      print('Error: $e');
+      print('StackTrace: ${StackTrace.current}');
+    }
   }
 }
