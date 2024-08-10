@@ -33,7 +33,7 @@ Future<void> fetchGsheet() async {
   }
 }
 
-Future<void> insertData(DateTime date, Map<String, String> data) async {
+Future<void> insertData(DateTime date, Map<String, dynamic> data) async {
   try {
     const spredadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
     final credentials = await readJson();
@@ -46,14 +46,13 @@ Future<void> insertData(DateTime date, Map<String, String> data) async {
 
     final rowIndex = date.day;
 
-    await sheet.values.map.insertRow(rowIndex, data);
-
-    if (kDebugMode) logger('inserted row $rowIndex of sheet $sheetName.');
+    var res = await sheet.values.map.insertRow(rowIndex, data);
+    logger(data, rowIndex);
+    logger('inserted row $rowIndex of sheet $sheetName.',
+        res ? "Success" : "Failed");
   } on Exception catch (e) {
-    if (kDebugMode) {
-      errorLogger("Error: $e");
-      logger("StackTrace: ${StackTrace.current}");
-    }
+    errorLogger("Error: $e");
+    logger("StackTrace: ${StackTrace.current}");
   }
 }
 
