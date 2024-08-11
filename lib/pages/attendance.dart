@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lekkadapatti/components/attendance_group.dart';
-import 'package:lekkadapatti/components/attendance_options.dart';
-import 'package:lekkadapatti/components/name_list.dart';
+import 'package:lekkadapatti/components/group/attendance_group.dart';
+import 'package:lekkadapatti/components/individual/attendance_options.dart';
+import 'package:lekkadapatti/components/individual/name_list.dart';
 import 'package:lekkadapatti/utils/attendance_manager.dart';
 import 'package:lekkadapatti/utils/date_time.dart';
 
@@ -97,21 +97,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: AttendanceGroup(
             name: group,
+            attendanceManager: attendanceManager,
+            setState: setState,
             status: attendanceManager.status,
-            onIncrement: (type, count) {
-              setState(() {
-                attendanceManager.status[type] = count + 1;
-              });
-              attendanceManager.saveAttendanceAndGroupData();
-            },
-            onDecrement: (type, count) {
-              setState(() {
-                if (count > 0) {
-                  attendanceManager.status[type] = count - 1;
-                }
-              });
-              attendanceManager.saveAttendanceAndGroupData();
-            },
           ),
         );
       },

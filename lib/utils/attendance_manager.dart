@@ -21,6 +21,7 @@ class AttendanceManager {
 
   AttendanceManager({required this.currentDate});
 
+  
   Future<void> loadAttendanceDataPerDate({required Function setState}) async {
     final prefs = await SharedPreferences.getInstance();
     final savedAttendanceDataPerDate = prefs.getString('attendanceDataPerDate');
@@ -116,6 +117,17 @@ class AttendanceManager {
     final index = names.indexOf(oldName);
     setState(() {
       names[index] = newName;
+    });
+    saveAttendanceAndGroupData();
+  }
+
+  void deleteName({
+    required String name,
+    required Function setState,
+  }) {
+    setState(() {
+      names.remove(name);
+      names = names;
     });
     saveAttendanceAndGroupData();
   }

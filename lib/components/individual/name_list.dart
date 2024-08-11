@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lekkadapatti/utils/attendance_manager.dart';
 
-
 class NameList extends StatelessWidget {
   final List<String> names;
   final Map<String, String> attendance;
@@ -16,7 +15,9 @@ class NameList extends StatelessWidget {
     required this.setState,
   });
 
-  void onDeleteTap(String name) {}
+  void onDeleteTap(String name) {
+    attendanceManager.deleteName(name: name, setState: setState);
+  }
 
   Future<String?> _showEditInputDialog(
       BuildContext context, String oldName) async {

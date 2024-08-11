@@ -1,18 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:lekkadapatti/components/group/group_list.dart';
+import 'package:lekkadapatti/utils/attendance_manager.dart';
 
 class AttendanceGroup extends StatelessWidget {
   final String name;
   final Map<String, int> status;
-  final Function(String, int) onIncrement;
-  final Function(String, int) onDecrement;
+  final Function setState;
+  final AttendanceManager attendanceManager;
 
-  const AttendanceGroup({
-    super.key,
-    required this.name,
-    required this.status,
-    required this.onIncrement,
-    required this.onDecrement,
-  });
+  const AttendanceGroup(
+      {super.key,
+      required this.name,
+      required this.status,
+      required this.setState,
+      required this.attendanceManager});
+
+  void onIncrement(type, count) {
+    setState(() {
+      attendanceManager.status[type] = count + 1;
+    });
+    attendanceManager.saveAttendanceAndGroupData();
+  }
+
+  void onDecrement(type, count) {
+    setState(() {
+      if (count > 0) {
+        attendanceManager.status[type] = count - 1;
+      }
+    });
+    attendanceManager.saveAttendanceAndGroupData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,14 +43,7 @@ class AttendanceGroup extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              name,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.blueAccent,
-              ),
-            ),
+            GroupList(label: name),
             const SizedBox(height: 20),
             _buildCounter('male', status['male'] ?? 0),
             const SizedBox(height: 20),
