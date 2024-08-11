@@ -1,17 +1,59 @@
 import 'package:flutter/material.dart';
-import 'attendance_options.dart';
+import 'package:lekkadapatti/utils/attendance_manager.dart';
+
 
 class NameList extends StatelessWidget {
   final List<String> names;
   final Map<String, String> attendance;
-  final Function(String, String) setAttendance;
+  final AttendanceManager attendanceManager;
+  final Function setState;
 
   const NameList({
-    Key? key,
+    super.key,
     required this.names,
     required this.attendance,
-    required this.setAttendance,
-  }) : super(key: key);
+    required this.attendanceManager,
+    required this.setState,
+  });
+
+  void onDeleteTap(String name) {}
+
+  Future<String?> _showEditInputDialog(
+      BuildContext context, String oldName) async {
+    String name = oldName;
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter Name'),
+          content: TextField(
+            onChanged: (value) {
+              name = value;
+            },
+            decoration: const InputDecoration(
+              hintText: "Enter name here",
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(name);
+                attendanceManager.editName(
+                    oldName: oldName, newName: name, setState: setState);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,25 +63,26 @@ class NameList extends StatelessWidget {
       itemCount: names.length,
       itemBuilder: (context, index) {
         String name = names[index];
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          child: Card(
-            elevation: 5,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            child: ListTile(
-              title: Text(
-                name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: AttendanceOptions(
-                name: name,
-                currentStatus: attendance[name] ?? '',
-                onStatusChanged: setAttendance,
-              ),
-            ),
-          ),
+            PopupMenuButton(itemBuilder: (context) {
+              return [
+                PopupMenuItem(
+                  child: const Text('delete'),
+                  onTap: () => onDeleteTap(name),
+                ),
+                PopupMenuItem(
+                  child: const Text('edit'),
+                  onTap: () => _showEditInputDialog(context, name),
+                ),
+              ];
+            }),
+          ],
         );
       },
     );

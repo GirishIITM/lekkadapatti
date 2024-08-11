@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lekkadapatti/components/attendance_group.dart';
 import 'package:lekkadapatti/components/attendance_options.dart';
+import 'package:lekkadapatti/components/name_list.dart';
 import 'package:lekkadapatti/utils/attendance_manager.dart';
 import 'package:lekkadapatti/utils/date_time.dart';
 
@@ -54,31 +55,33 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       itemBuilder: (context, index) {
         String name = attendanceManager.names[index];
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          child: Card(
-            elevation: 5,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: ListTile(
-              title: Text(
-                name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+            padding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: Card(
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
               ),
-              subtitle: AttendanceOptions(
-                name: name,
-                currentStatus: attendanceManager.attendance[name] ?? '',
-                onStatusChanged: (status, name) {
-                  attendanceManager.setAttendance(
-                    name: name,
-                    status: status,
-                    setState: setState,
-                  );
-                },
+              child: ListTile(
+                title: NameList(
+                  names: [name],
+                  attendance: attendanceManager.attendance,
+                  attendanceManager: attendanceManager,
+                  setState: setState,
+                ),
+                subtitle: AttendanceOptions(
+                  name: name,
+                  currentStatus: attendanceManager.attendance[name] ?? '',
+                  onStatusChanged: (status, name) {
+                    attendanceManager.setAttendance(
+                      name: name,
+                      status: status,
+                      setState: setState,
+                    );
+                  },
+                ),
               ),
-            ),
-          ),
-        );
+            ));
       },
     );
   }

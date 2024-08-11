@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lekkadapatti/pages/attendance.dart';
+import 'package:lekkadapatti/pages/work.dart';
 
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
@@ -13,7 +14,7 @@ class BottomNavBarState extends State<BottomNavBar> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     AttendanceScreen(),
-    Text('Work Page'),
+    Work(),
     Text('Dashboard Page'),
   ];
 

@@ -25,6 +25,16 @@ class AttendanceManager {
     final prefs = await SharedPreferences.getInstance();
     final savedAttendanceDataPerDate = prefs.getString('attendanceDataPerDate');
     final savedGroupDataPerDate = prefs.getString('groupDataPerDate');
+    final savedNames = prefs.getString("names");
+    final savedGroups = prefs.getString("groups");
+
+    if (savedNames != null) {
+      names = List<String>.from(jsonDecode(savedNames));
+    }
+
+    if (savedGroups != null) {
+      groups = List<String>.from(jsonDecode(savedGroups));
+    }
 
     if (savedAttendanceDataPerDate != null) {
       attendanceDataPerDate = Map<String, Map<String, String>>.from(
@@ -44,6 +54,8 @@ class AttendanceManager {
       attendance = attendanceDataPerDate[formattedDate(currentDate)] ?? {};
       status = groupDataPerDate[formattedDate(currentDate)] ??
           {"male": 0, "female": 0};
+      names = names;
+      groups = groups;
     });
   }
 
@@ -52,6 +64,8 @@ class AttendanceManager {
     await prefs.setString(
         'attendanceDataPerDate', jsonEncode(attendanceDataPerDate));
     await prefs.setString('groupDataPerDate', jsonEncode(groupDataPerDate));
+    await prefs.setString("names", jsonEncode(names));
+    await prefs.setString("groups", jsonEncode(groups));
   }
 
   void setAttendance({
@@ -93,6 +107,17 @@ class AttendanceManager {
       status = groupDataPerDate[formattedDate(currentDate)] ??
           {"male": 0, "female": 0};
     });
+  }
+
+  void editName(
+      {required String oldName,
+      required String newName,
+      required Function setState}) {
+    final index = names.indexOf(oldName);
+    setState(() {
+      names[index] = newName;
+    });
+    saveAttendanceAndGroupData();
   }
 }
 
