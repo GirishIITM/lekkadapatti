@@ -100,6 +100,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             attendanceManager: attendanceManager,
             setState: setState,
             status: attendanceManager.status,
+            groupName: group,
           ),
         );
       },

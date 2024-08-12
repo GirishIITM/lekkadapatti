@@ -4,20 +4,22 @@ import 'package:lekkadapatti/utils/attendance_manager.dart';
 
 class AttendanceGroup extends StatelessWidget {
   final String name;
-  final Map<String, int> status;
+  final Map<String, Map<String, int>> status;
   final Function setState;
   final AttendanceManager attendanceManager;
+  final String groupName;
 
   const AttendanceGroup(
       {super.key,
       required this.name,
       required this.status,
       required this.setState,
+      required this.groupName,
       required this.attendanceManager});
 
   void onIncrement(type, count) {
     setState(() {
-      attendanceManager.status[type] = count + 1;
+      attendanceManager.status[groupName]?[type] = count + 1;
     });
     attendanceManager.saveAttendanceAndGroupData();
   }
@@ -25,7 +27,7 @@ class AttendanceGroup extends StatelessWidget {
   void onDecrement(type, count) {
     setState(() {
       if (count > 0) {
-        attendanceManager.status[type] = count - 1;
+        attendanceManager.status[groupName]?[type] = count - 1;
       }
     });
     attendanceManager.saveAttendanceAndGroupData();
@@ -45,9 +47,9 @@ class AttendanceGroup extends StatelessWidget {
           children: [
             GroupList(label: name),
             const SizedBox(height: 20),
-            _buildCounter('male', status['male'] ?? 0),
+            _buildCounter('male', status[groupName]?['male'] ?? 0),
             const SizedBox(height: 20),
-            _buildCounter('female', status['female'] ?? 0),
+            _buildCounter('female', status[groupName]?['female'] ?? 0),
           ],
         ),
       ),
