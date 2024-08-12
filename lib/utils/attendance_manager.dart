@@ -1,3 +1,4 @@
+import 'package:lekkadapatti/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -7,9 +8,12 @@ import 'gheet_sync.dart';
 class AttendanceManager {
   DateTime currentDate;
   Map<String, Map<String, String>> attendanceDataPerDate = {};
-  Map<String, Map<String, int>> groupDataPerDate = {};
+  Map<String, Map<String, Map<String, int>>> groupDataPerDate = {};
   Map<String, String> attendance = {};
-  Map<String, int> status = {"male": 0, "female": 0};
+  Map<String, Map<String, int>> status = {
+    "Hindesgeri (ಹಿಂಡಸಗೇರಿ)": {"male": 0, "female": 0}
+  };
+
   List<String> names = [
     'ವಿಠ್ಠಲ Vithal',
     'ಗಂಗಾ Ganga',
@@ -21,52 +25,73 @@ class AttendanceManager {
 
   AttendanceManager({required this.currentDate});
 
-  
   Future<void> loadAttendanceDataPerDate({required Function setState}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedAttendanceDataPerDate = prefs.getString('attendanceDataPerDate');
-    final savedGroupDataPerDate = prefs.getString('groupDataPerDate');
-    final savedNames = prefs.getString("names");
-    final savedGroups = prefs.getString("groups");
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedAttendanceDataPerDate =
+          prefs.getString('attendanceDataPerDate');
+      final savedGroupDataPerDate = prefs.getString('groupDataPerDate');
+      final savedNames = prefs.getString("names");
+      final savedGroups = prefs.getString("groups");
 
-    if (savedNames != null) {
-      names = List<String>.from(jsonDecode(savedNames));
+      if (savedNames != null) {
+        names = List<String>.from(jsonDecode(savedNames));
+      }
+
+      if (savedGroups != null) {
+        groups = List<String>.from(jsonDecode(savedGroups));
+      }
+
+      if (savedAttendanceDataPerDate != null) {
+        attendanceDataPerDate = Map<String, Map<String, String>>.from(
+          jsonDecode(savedAttendanceDataPerDate).map(
+              (key, value) => MapEntry(key, Map<String, String>.from(value))),
+        );
+      }
+
+      if (savedGroupDataPerDate != null) {
+        final Map<String, dynamic> decodedData =
+            jsonDecode(savedGroupDataPerDate);
+        groupDataPerDate = Map<String, Map<String, Map<String, int>>>.from(
+          decodedData.map(
+            (key, value) => MapEntry(
+              key,
+              Map<String, Map<String, int>>.from(
+                value.map(
+                  (key, value) => MapEntry(
+                    key,
+                    Map<String, int>.from(value),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        logger(groupDataPerDate);
+      }
+
+      setState(() {
+        attendance = attendanceDataPerDate[formattedDate(currentDate)] ?? {};
+        status = groupDataPerDate[formattedDate(currentDate)] ?? status;
+        names = names;
+        groups = groups;
+      });
+    } on Exception catch (e) {
+      errorLogger(e);
     }
-
-    if (savedGroups != null) {
-      groups = List<String>.from(jsonDecode(savedGroups));
-    }
-
-    if (savedAttendanceDataPerDate != null) {
-      attendanceDataPerDate = Map<String, Map<String, String>>.from(
-        jsonDecode(savedAttendanceDataPerDate).map(
-            (key, value) => MapEntry(key, Map<String, String>.from(value))),
-      );
-    }
-
-    if (savedGroupDataPerDate != null) {
-      groupDataPerDate = Map<String, Map<String, int>>.from(
-        jsonDecode(savedGroupDataPerDate)
-            .map((key, value) => MapEntry(key, Map<String, int>.from(value))),
-      );
-    }
-
-    setState(() {
-      attendance = attendanceDataPerDate[formattedDate(currentDate)] ?? {};
-      status = groupDataPerDate[formattedDate(currentDate)] ??
-          {"male": 0, "female": 0};
-      names = names;
-      groups = groups;
-    });
   }
 
   Future<void> saveAttendanceAndGroupData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        'attendanceDataPerDate', jsonEncode(attendanceDataPerDate));
-    await prefs.setString('groupDataPerDate', jsonEncode(groupDataPerDate));
-    await prefs.setString("names", jsonEncode(names));
-    await prefs.setString("groups", jsonEncode(groups));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+          'attendanceDataPerDate', jsonEncode(attendanceDataPerDate));
+      await prefs.setString('groupDataPerDate', jsonEncode(groupDataPerDate));
+      await prefs.setString("names", jsonEncode(names));
+      await prefs.setString("groups", jsonEncode(groups));
+    } on Exception catch (e) {
+      errorLogger(e);
+    }
   }
 
   void setAttendance({
@@ -105,8 +130,7 @@ class AttendanceManager {
   void loadDataForCurrentDate({required Function setState}) {
     setState(() {
       attendance = attendanceDataPerDate[formattedDate(currentDate)] ?? {};
-      status = groupDataPerDate[formattedDate(currentDate)] ??
-          {"male": 0, "female": 0};
+      status = groupDataPerDate[formattedDate(currentDate)] ?? status;
     });
   }
 
