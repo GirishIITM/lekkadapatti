@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lekkadapatti/components/group/group_list.dart';
 import 'package:lekkadapatti/utils/attendance_manager.dart';
+import 'package:lekkadapatti/utils/date_time.dart';
 
 class AttendanceGroup extends StatelessWidget {
   final String name;
@@ -20,6 +21,15 @@ class AttendanceGroup extends StatelessWidget {
   void onIncrement(type, count) {
     setState(() {
       attendanceManager.status[groupName]?[type] = count + 1;
+      if (attendanceManager
+              .groupDataPerDate[formattedDate(attendanceManager.currentDate)] ==
+          null) {
+        attendanceManager.groupDataPerDate[
+            formattedDate(attendanceManager.currentDate)] = {};
+      }
+      attendanceManager.groupDataPerDate[
+              formattedDate(attendanceManager.currentDate)]![groupName] =
+          status[groupName]!;
     });
     attendanceManager.saveAttendanceAndGroupData();
   }
@@ -28,6 +38,12 @@ class AttendanceGroup extends StatelessWidget {
     setState(() {
       if (count > 0) {
         attendanceManager.status[groupName]?[type] = count - 1;
+        if (attendanceManager.groupDataPerDate[
+                formattedDate(attendanceManager.currentDate)] ==
+            null) {
+          attendanceManager.groupDataPerDate[
+              formattedDate(attendanceManager.currentDate)] = {};
+        }
       }
     });
     attendanceManager.saveAttendanceAndGroupData();
@@ -45,7 +61,10 @@ class AttendanceGroup extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GroupList(label: name),
+            GroupList(
+                label: name,
+                attendanceManager: attendanceManager,
+                setState: setState),
             const SizedBox(height: 20),
             _buildCounter('male', status[groupName]?['male'] ?? 0),
             const SizedBox(height: 20),
