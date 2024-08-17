@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lekkadapatti/utils/ui/work_manager.dart';
 
 class Work extends StatefulWidget {
   const Work({super.key});
@@ -8,37 +9,28 @@ class Work extends StatefulWidget {
 }
 
 class _WorkState extends State<Work> {
-  final List<String> projects = [
-    "Devara Mundige (ದೇವರಮುಂಡಿಗೆ)",
-    "Ekaana (ಏಕಾನ)",
-    "Chapegaali (ಚಾಪೆಗಾಳಿ)",
-    "Nammane (ನಮ್ಮನೆ)",
-  ];
-
-  final List<String> projectTypes = [
-    "Kutare kelasa (ಕುಟಾರೆ ಕೆಲಸ)",
-    "Shashi Neduvudu (ಶಶಿ ನೆಡುವುದು)",
-    "Katti Kelasa (ಕತ್ತಿ ಕೆಲಸ)",
-    "Line out (ಲೈನ್ ಔಟ್)",
-    "Spray (ಸ್ಪ್ರೇ)",
-    "Jeevamruta (ಜೀವಾಮೃತ)",
-    "Mannu kelasa (ಮಣ್ಣು ಕೆಲಸ)",
-    "Maddu hodeyudu (ಮದ್ದು ಹೊಡೆಯುದು)",
-    "Kone Koyyudu (ಕೊನೆ ಕೊಯ್ಯುದು)",
-  ];
+  late WorkManager workManager;
 
   @override
   void initState() {
     super.initState();
+    workManager = WorkManager();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Attendance'),
+        title: const Text('Project Details'),
       ),
-      body: const Text('Work'),
+      body: Column(
+        children: workManager.projects.map((project) {
+          return Container(
+            alignment: Alignment.center,
+            child: Text(project),
+          );
+        }).toList(),
+      ),
     );
   }
 }

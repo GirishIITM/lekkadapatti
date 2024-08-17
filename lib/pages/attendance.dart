@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:lekkadapatti/components/date_picker.dart';
 import 'package:lekkadapatti/components/group/attendance_group.dart';
 import 'package:lekkadapatti/components/individual/attendance_options.dart';
 import 'package:lekkadapatti/components/individual/name_list.dart';
-import 'package:lekkadapatti/utils/attendance_manager.dart';
-import 'package:lekkadapatti/utils/date_time.dart';
+import 'package:lekkadapatti/utils/ui/attendance_manager.dart';
+import 'package:lekkadapatti/utils/functions/date_time.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -30,7 +31,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       ),
       body: Column(
         children: [
-          _buildDateNavigation(),
+          DatePicker(attendanceManager: attendanceManager, setState: setState),
           Expanded(
             child: ListView(
               children: [
@@ -130,7 +131,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             onPressed: () async {
               String? groupName = await _showNameInputDialog(context);
               if (groupName != null && groupName.isNotEmpty) {
-               attendanceManager.addGroup(groupName: groupName, setState: setState);
+                attendanceManager.addGroup(
+                    groupName: groupName, setState: setState);
               }
             },
             child: const Text('Add Group'),
@@ -138,52 +140,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ),
       ],
     );
-  }
-
-  Widget _buildDateNavigation() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () =>
-                attendanceManager.goToPreviousDay(setState: setState),
-          ),
-          GestureDetector(
-            onTap: () => _selectDate(context),
-            child: Text(
-              '${formattedDate(attendanceManager.currentDate)} ${daysInKannada[attendanceManager.currentDate.weekday - 1]}',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.arrow_forward),
-            onPressed: () => attendanceManager.goToNextDay(setState: setState),
-            disabledColor: Colors.grey,
-            color: attendanceManager.currentDate.isSameDate(DateTime.now())
-                ? Colors.grey
-                : null,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: attendanceManager.currentDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null && picked != attendanceManager.currentDate) {
-      setState(() {
-        attendanceManager.currentDate = picked;
-        attendanceManager.loadDataForCurrentDate(setState: setState);
-      });
-    }
   }
 
   Future<String?> _showNameInputDialog(BuildContext context) async {

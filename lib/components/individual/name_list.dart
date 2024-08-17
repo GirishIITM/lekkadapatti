@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lekkadapatti/utils/attendance_manager.dart';
+import 'package:lekkadapatti/utils/ui/attendance_manager.dart';
 
 class NameList extends StatelessWidget {
   final List<String> names;

@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:gsheets/gsheets.dart';
 import 'package:flutter/services.dart';
-import 'package:lekkadapatti/utils/date_time.dart';
-import 'package:lekkadapatti/utils/logger.dart';
+import 'package:lekkadapatti/utils/functions/date_time.dart';
+import 'package:lekkadapatti/utils/functions/logger.dart';
 
 Future<String> readJson() async {
   return await rootBundle.loadString('assets/g_sheet_creds.json');
