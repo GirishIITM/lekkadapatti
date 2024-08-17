@@ -10,10 +10,10 @@ Future<String> readJson() async {
 
 Future<void> fetchGsheet() async {
   try {
-    const spredadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
+    const spreadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
     final credentials = await readJson();
-    final gsheets = GSheets(credentials);
-    final ss = await gsheets.spreadsheet(spredadSheetId);
+    final sheets = GSheets(credentials);
+    final ss = await sheets.spreadsheet(spreadSheetId);
 
     var data = await ss.sheets.first.values.map.allRows()
         as List<Map<String, dynamic>>?;
@@ -35,11 +35,11 @@ Future<void> fetchGsheet() async {
 
 Future<void> insertData(DateTime date, Map<String, dynamic> data) async {
   try {
-    const spredadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
+    const spreadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
     final credentials = await readJson();
-    final gsheets = GSheets(credentials);
+    final sheets = GSheets(credentials);
     final sheetName = getYearWeekFromDate(date);
-    final ss = await gsheets.spreadsheet(spredadSheetId);
+    final ss = await sheets.spreadsheet(spreadSheetId);
     var sheet = ss.worksheetByTitle(sheetName);
 
     sheet ??= await ss.addWorksheet(sheetName);

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:lekkadapatti/utils/attendance_manager.dart';
 
 class GroupList extends StatelessWidget {
   final String label;
+  final AttendanceManager attendanceManager;
+  final Function setState;
 
-  const GroupList({super.key, required this.label});
+  const GroupList(
+      {super.key,
+      required this.label,
+      required this.attendanceManager,
+      required this.setState});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +28,8 @@ class GroupList extends StatelessWidget {
         PopupMenuButton<String>(
           onSelected: (String value) {
             if (value == 'delete') {
-              // Handle delete option
+              attendanceManager.deleteGroup(
+                  groupName: label, setState: setState);
             } else if (value == 'edit') {
               // Handle edit option
             }

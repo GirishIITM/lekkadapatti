@@ -25,6 +25,14 @@ class AttendanceManager {
 
   AttendanceManager({required this.currentDate});
 
+  Future<void> clearData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('attendanceDataPerDate');
+    await prefs.remove('groupDataPerDate');
+    await prefs.remove('names');
+    await prefs.remove('groups');
+  }
+
   Future<void> loadAttendanceDataPerDate({required Function setState}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -67,7 +75,6 @@ class AttendanceManager {
             ),
           ),
         );
-        logger(groupDataPerDate);
       }
 
       setState(() {
@@ -105,6 +112,25 @@ class AttendanceManager {
     saveAttendanceAndGroupData();
     insertData(currentDate,
         {'Name': name, 'Date': dateToGsheets(currentDate), 'Status': status});
+  }
+
+  void addGroup({required String groupName, required Function setState}) {
+    setState(() {
+      groups.add(groupName);
+      status[groupName] = {
+        "male": 0,
+        "female": 0,
+      };
+    });
+    saveAttendanceAndGroupData();
+  }
+
+  void deleteGroup({required String groupName, required Function setState}) {
+    setState(() {
+      groups.remove(groupName);
+      status.remove(groupName);
+    });
+    saveAttendanceAndGroupData();
   }
 
   void goToPreviousDay({required Function setState}) {
@@ -164,11 +190,11 @@ extension DateTimeExtensions on DateTime {
 }
 
 const daysInKannada = [
-  "ಭಾನುವಾರ",
   "ಸೋಮವಾರ",
   "ಮಂಗಳವಾರ",
   "ಬುಧವಾರ",
   "ಗುರುವಾರ",
   "ಶುಕ್ರವಾರ",
   "ಶನಿವಾರ",
+  "ಭಾನುವಾರ",
 ];

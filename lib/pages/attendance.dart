@@ -72,7 +72,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 subtitle: AttendanceOptions(
                   name: name,
                   currentStatus: attendanceManager.attendance[name] ?? '',
-                  onStatusChanged: (status, name) {
+                  onStatusChanged: (String name, String status) {
                     attendanceManager.setAttendance(
                       name: name,
                       status: status,
@@ -130,9 +130,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             onPressed: () async {
               String? groupName = await _showNameInputDialog(context);
               if (groupName != null && groupName.isNotEmpty) {
-                setState(() {
-                  attendanceManager.groups.add(groupName);
-                });
+               attendanceManager.addGroup(groupName: groupName, setState: setState);
               }
             },
             child: const Text('Add Group'),

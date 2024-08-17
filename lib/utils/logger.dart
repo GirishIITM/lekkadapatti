@@ -13,6 +13,7 @@ void logger(dynamic args,
     if (args4 != null) print(args4);
     if (args5 != null) print(args5);
     if (args6 != null) print(args6);
+    print(StackTrace.current);
   }
 }
 
@@ -29,6 +30,7 @@ void errorLogger(dynamic args,
     if (args4 != null) print(args4);
     if (args5 != null) print(args5);
     if (args6 != null) print(args6);
+    print(StackTrace.current);
   }
 }
 
