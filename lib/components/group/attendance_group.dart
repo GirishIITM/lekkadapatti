@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lekkadapatti/components/group/group_list.dart';
-import 'package:lekkadapatti/utils/attendance_manager.dart';
-import 'package:lekkadapatti/utils/date_time.dart';
+import 'package:lekkadapatti/utils/ui/attendance_manager.dart';
 
 class AttendanceGroup extends StatelessWidget {
   final String name;
@@ -17,37 +16,6 @@ class AttendanceGroup extends StatelessWidget {
       required this.setState,
       required this.groupName,
       required this.attendanceManager});
-
-  void onIncrement(type, count) {
-    setState(() {
-      attendanceManager.status[groupName]?[type] = count + 1;
-      if (attendanceManager
-              .groupDataPerDate[formattedDate(attendanceManager.currentDate)] ==
-          null) {
-        attendanceManager.groupDataPerDate[
-            formattedDate(attendanceManager.currentDate)] = {};
-      }
-      attendanceManager.groupDataPerDate[
-              formattedDate(attendanceManager.currentDate)]![groupName] =
-          status[groupName]!;
-    });
-    attendanceManager.saveAttendanceAndGroupData();
-  }
-
-  void onDecrement(type, count) {
-    setState(() {
-      if (count > 0) {
-        attendanceManager.status[groupName]?[type] = count - 1;
-        if (attendanceManager.groupDataPerDate[
-                formattedDate(attendanceManager.currentDate)] ==
-            null) {
-          attendanceManager.groupDataPerDate[
-              formattedDate(attendanceManager.currentDate)] = {};
-        }
-      }
-    });
-    attendanceManager.saveAttendanceAndGroupData();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +64,8 @@ class AttendanceGroup extends StatelessWidget {
                 backgroundColor: const Color.fromARGB(255, 236, 88, 88),
                 padding: const EdgeInsets.all(15),
               ),
-              onPressed: () => onDecrement(label.toLowerCase(), count),
+              onPressed: () => attendanceManager.onDecrement(
+                  groupName, label.toLowerCase(), count, setState),
               child: const Icon(Icons.remove, size: 28, color: Colors.white),
             ),
             const SizedBox(width: 15),
@@ -115,7 +84,8 @@ class AttendanceGroup extends StatelessWidget {
                 backgroundColor: const Color.fromARGB(255, 0, 243, 126),
                 padding: const EdgeInsets.all(15),
               ),
-              onPressed: () => onIncrement(label.toLowerCase(), count),
+              onPressed: () => attendanceManager.onIncrement(
+                  groupName, label.toLowerCase(), count, setState),
               child: const Icon(Icons.add, size: 28, color: Colors.white),
             ),
           ],

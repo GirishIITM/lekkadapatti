@@ -134,6 +134,33 @@ class AttendanceManager {
     saveAttendanceAndGroupData();
   }
 
+  void onIncrement(
+      String groupName, String type, int count, Function setState) {
+    status[groupName]?[type] = count + 1;
+    if (groupDataPerDate[formattedDate(currentDate)] == null) {
+      groupDataPerDate[formattedDate(currentDate)] = {};
+    }
+    setState(() {
+      groupDataPerDate[formattedDate(currentDate)]?[groupName] =
+          status[groupName]!;
+    });
+    saveAttendanceAndGroupData();
+  }
+
+  void onDecrement(String groupName, String type, int count, Function setState) {
+    if (count > 0) {
+      status[groupName]?[type] = count - 1;
+      if (groupDataPerDate[formattedDate(currentDate)] == null) {
+        groupDataPerDate[formattedDate(currentDate)] = {};
+      }
+      setState(() {
+      groupDataPerDate[formattedDate(currentDate)]?[groupName] =
+          status[groupName]!;
+      });
+    }
+    saveAttendanceAndGroupData();
+  }
+
   void goToPreviousDay({required Function setState}) {
     saveDataForCurrentDate();
     currentDate = currentDate.subtract(const Duration(days: 1));
@@ -142,7 +169,6 @@ class AttendanceManager {
 
   void goToNextDay({required Function setState}) {
     if (currentDate.isSameDate(DateTime.now())) return;
-
     saveDataForCurrentDate();
     currentDate = currentDate.add(const Duration(days: 1));
     loadDataForCurrentDate(setState: setState);
