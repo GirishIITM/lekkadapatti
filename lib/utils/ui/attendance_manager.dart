@@ -147,15 +147,16 @@ class AttendanceManager {
     saveAttendanceAndGroupData();
   }
 
-  void onDecrement(String groupName, String type, int count, Function setState) {
+  void onDecrement(
+      String groupName, String type, int count, Function setState) {
     if (count > 0) {
       status[groupName]?[type] = count - 1;
       if (groupDataPerDate[formattedDate(currentDate)] == null) {
         groupDataPerDate[formattedDate(currentDate)] = {};
       }
       setState(() {
-      groupDataPerDate[formattedDate(currentDate)]?[groupName] =
-          status[groupName]!;
+        groupDataPerDate[formattedDate(currentDate)]?[groupName] =
+            status[groupName]!;
       });
     }
     saveAttendanceAndGroupData();
@@ -181,9 +182,13 @@ class AttendanceManager {
   }
 
   void loadDataForCurrentDate({required Function setState}) {
+    Map<String, Map<String, int>> initStatus = {};
+    for (var group in groups) {
+      initStatus[group] = {"male": 0, "femaile": 0};
+    }
     setState(() {
       attendance = attendanceDataPerDate[formattedDate(currentDate)] ?? {};
-      status = groupDataPerDate[formattedDate(currentDate)] ?? status;
+      status = groupDataPerDate[formattedDate(currentDate)] ?? initStatus;
     });
   }
 

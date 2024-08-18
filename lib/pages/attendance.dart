@@ -4,7 +4,6 @@ import 'package:lekkadapatti/components/group/attendance_group.dart';
 import 'package:lekkadapatti/components/individual/attendance_options.dart';
 import 'package:lekkadapatti/components/individual/name_list.dart';
 import 'package:lekkadapatti/utils/ui/attendance_manager.dart';
-import 'package:lekkadapatti/utils/functions/date_time.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
