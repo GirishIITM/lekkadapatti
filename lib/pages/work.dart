@@ -32,7 +32,6 @@ class _WorkState extends State<Work> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Dropdown for selecting project
                   DropdownButton<String>(
                     hint: const Text("Select Project"),
                     value: workManager.selectedProject,
@@ -49,8 +48,6 @@ class _WorkState extends State<Work> {
                     },
                   ),
                   const SizedBox(height: 16),
-
-                  // Dropdown for selecting project type
                   DropdownButton<String>(
                     hint: const Text("Select Project Type"),
                     value: workManager.selectedProjectType,
@@ -67,8 +64,6 @@ class _WorkState extends State<Work> {
                     },
                   ),
                   const SizedBox(height: 16),
-
-                  // Multi-select for names using CheckboxListTile
                   Expanded(
                     child: ListView(
                       children: workManager.names.map((String name) {
