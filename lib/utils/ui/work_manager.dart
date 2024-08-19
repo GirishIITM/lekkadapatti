@@ -4,14 +4,14 @@ import 'package:lekkadapatti/utils/ui/attendance_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WorkManager {
-  final List<String> projects = [
+  List<String> projects = [
     "Devara Mundige (ದೇವರಮುಂಡಿಗೆ)",
     "Ekaana (ಏಕಾನ)",
     "Chapegaali (ಚಾಪೆಗಾಳಿ)",
     "Nammane (ನಮ್ಮನೆ)",
   ];
 
-  final List<String> projectTypes = [
+  List<String> projectTypes = [
     "Kutare kelasa (ಕುಟಾರೆ ಕೆಲಸ)",
     "Shashi Neduvudu (ಶಶಿ ನೆಡುವುದು)",
     "Katti Kelasa (ಕತ್ತಿ ಕೆಲಸ)",
@@ -22,6 +22,34 @@ class WorkManager {
     "Maddu hodeyudu (ಮದ್ದು ಹೊಡೆಯುದು)",
     "Kone Koyyudu (ಕೊನೆ ಕೊಯ್ಯುದು)",
   ];
+
+  List<String> names = [
+    'ವಿಠ್ಠಲ Vithal',
+    'ಗಂಗಾ Ganga',
+    'ಮೊಹಮ್ಮದ್ Mohammad',
+    'ನಹಿದಾ Nahida',
+  ];
+
+  Future<void> loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final savedNames = prefs.getString("names");
+    final savedProjects = prefs.getString("projects");
+    final savedProjectTypes = prefs.getString("projectTypes");
+    if (savedNames != null) {
+      names = List<String>.from(jsonDecode(savedNames));
+    }
+    if (savedProjects != null) {
+      projects = List<String>.from(jsonDecode(savedProjects));
+    }
+    if (savedProjectTypes != null) {
+      projectTypes = List<String>.from(jsonDecode(savedProjectTypes));
+    }
+  }
+
+  String? selectedProject;
+  String? selectedProjectType;
+  List<String> selectedNames = [];
 
   DateTime currentDate;
   Map<String, String> workDetails = {};
@@ -51,6 +79,7 @@ class WorkManager {
         );
       });
     }
+    loadData();
   }
 
   Future<void> goToPreviousDay({required Function setState}) async {
