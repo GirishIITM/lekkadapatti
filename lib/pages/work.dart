@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lekkadapatti/components/work_date_picker.dart';
 import 'package:lekkadapatti/utils/ui/work_manager.dart';
 
 class Work extends StatefulWidget {
@@ -14,23 +15,27 @@ class _WorkState extends State<Work> {
   @override
   void initState() {
     super.initState();
-    workManager = WorkManager();
+    workManager = WorkManager(currentDate: DateTime.now());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Project Details'),
-      ),
-      body: Column(
-        children: workManager.projects.map((project) {
-          return Container(
-            alignment: Alignment.center,
-            child: Text(project),
-          );
-        }).toList(),
-      ),
-    );
+        appBar: AppBar(
+          title: const Text('Project Details'),
+        ),
+        body: Column(
+          children: [
+            DatePicker(setState: setState, workManager: workManager),
+            Column(
+              children: workManager.projects.map((project) {
+                return Container(
+                  alignment: Alignment.center,
+                  child: Text(project),
+                );
+              }).toList(),
+            ),
+          ],
+        ));
   }
 }

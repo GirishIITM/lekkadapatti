@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lekkadapatti/components/date_picker.dart';
+import 'package:lekkadapatti/components/attendance_date_picker.dart';
 import 'package:lekkadapatti/components/group/attendance_group.dart';
 import 'package:lekkadapatti/components/individual/attendance_options.dart';
 import 'package:lekkadapatti/components/individual/name_list.dart';
