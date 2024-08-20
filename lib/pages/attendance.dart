@@ -115,11 +115,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           child: ElevatedButton(
             onPressed: () async {
               String? newName = await _showNameInputDialog(context);
-              if (newName != null && newName.isNotEmpty) {
-                setState(() {
-                  attendanceManager.names.add(newName);
-                });
-              }
+              attendanceManager.addName(name: newName!, setState: setState);
             },
             child: const Text('Add Name'),
           ),

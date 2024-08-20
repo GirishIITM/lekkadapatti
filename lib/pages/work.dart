@@ -24,69 +24,63 @@ class _WorkState extends State<Work> {
         appBar: AppBar(
           title: const Text('Project Details'),
         ),
-        body: Column(
-          children: [
-            DatePicker(setState: setState, workManager: workManager),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DropdownButton<String>(
-                    hint: const Text("Select Project"),
-                    value: workManager.selectedProject,
-                    items: workManager.projects.map((String project) {
-                      return DropdownMenuItem<String>(
-                        value: project,
-                        child: Text(project),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        workManager.selectedProject = newValue;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButton<String>(
-                    hint: const Text("Select Project Type"),
-                    value: workManager.selectedProjectType,
-                    items: workManager.projectTypes.map((String type) {
-                      return DropdownMenuItem<String>(
-                        value: type,
-                        child: Text(type),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        workManager.selectedProjectType = newValue;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView(
-                      children: workManager.names.map((String name) {
-                        return CheckboxListTile(
-                          title: Text(name),
-                          value: workManager.selectedNames.contains(name),
-                          onChanged: (bool? isChecked) {
-                            setState(() {
-                              if (isChecked == true) {
-                                workManager.selectedNames.add(name);
-                              } else {
-                                workManager.selectedNames.remove(name);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          ],
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                DatePicker(setState: setState, workManager: workManager),
+                const Text("Place", style: TextStyle(fontSize: 20)),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8.0,
+                  children: workManager.projects.map((String project) {
+                    return FilterChip(
+                      label: Text(project),
+                      selected: workManager.selectedProject == project,
+                      onSelected: (bool selected) {
+                        workManager.onProjectSelected(
+                            selected, project, setState);
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+                const Text("Work Types", style: TextStyle(fontSize: 20)),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8.0,
+                  children: workManager.projectTypes.map((String projectType) {
+                    return FilterChip(
+                      label: Text(projectType),
+                      selected: workManager.selectedProjectTypes
+                          .contains(projectType),
+                      onSelected: (bool selected) {
+                        workManager.onProjectTypeSelected(
+                            selected, projectType, setState);
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+                const Text("Names", style: TextStyle(fontSize: 20)),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8.0,
+                  children: workManager.names.map((String name) {
+                    return FilterChip(
+                      label: Text(name),
+                      selected: workManager.selectedNames.contains(name),
+                      onSelected: (bool selected) {
+                        workManager.onNameSelected(selected, name, setState);
+                      },
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
         ));
   }
 }

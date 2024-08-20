@@ -114,6 +114,14 @@ class AttendanceManager {
         {'Name': name, 'Date': dateToGsheets(currentDate), 'Status': status});
   }
 
+  void addName({required String name, required Function setState}) {
+    if (names.contains(name) || name.isEmpty) return;
+    setState(() {
+      names.add(name);
+    });
+    saveAttendanceAndGroupData();
+  }
+
   void addGroup({required String groupName, required Function setState}) {
     setState(() {
       groups.add(groupName);

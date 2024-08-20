@@ -30,6 +30,19 @@ class WorkManager {
     'ನಹಿದಾ Nahida',
   ];
 
+  String? selectedProject;
+  List<String> selectedProjectTypes = [];
+  List<String> selectedNames = [];
+
+  DateTime currentDate;
+  Map<String, String> workDetails = {};
+  Map<String, Object> workDataPerDate = {
+    "selectedNames": [],
+    "selectedProject": "",
+    "selectedProjectTypes": [],
+  };
+  WorkManager({required this.currentDate});
+
   Future<void> loadData() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -47,15 +60,6 @@ class WorkManager {
     }
   }
 
-  String? selectedProject;
-  String? selectedProjectType;
-  List<String> selectedNames = [];
-
-  DateTime currentDate;
-  Map<String, String> workDetails = {};
-  Map<String, Map<String, String>> workDataPerDate = {};
-  WorkManager({required this.currentDate});
-
   Future<void> clearData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('workDataPerDate');
@@ -72,11 +76,19 @@ class WorkManager {
     if (savedWorkDataPerDate != null) {
       final parsedData = json.decode(savedWorkDataPerDate);
       setState(() {
-        workDataPerDate = Map<String, Map<String, String>>.from(
-          parsedData.map(
-            (key, value) => MapEntry(key, Map<String, String>.from(value)),
-          ),
-        );
+        selectedNames = List<String>.from(parsedData["selectedNames"]);
+        selectedProject = parsedData["selectedProject"];
+        selectedProjectTypes =
+            List<String>.from(parsedData["selectedProjectTypes"]);
+        workDataPerDate = parsedData.map((key, value) {
+          if (key == "selectedNames") {
+            return MapEntry(key, List<String>.from(value));
+          } else if (key == "selectedProjectTypes") {
+            return MapEntry(key, List<String>.from(value));
+          } else {
+            return MapEntry(key, value);
+          }
+        });
       });
     }
     loadData();
@@ -95,5 +107,32 @@ class WorkManager {
       currentDate = currentDate.add(const Duration(days: 1));
     });
     await loadDataForCurrentDate(setState: setState);
+  }
+
+  void onProjectSelected(bool selected, String project, Function setState) {
+    setState(() {
+      selectedProject = selected ? project : null;
+    });
+  }
+
+  void onProjectTypeSelected(
+      bool selected, String projectType, Function setState) {
+    setState(() {
+      if (selected) {
+        selectedProjectTypes.add(projectType);
+      } else {
+        selectedProjectTypes.remove(projectType);
+      }
+    });
+  }
+
+  void onNameSelected(bool selected, String name, Function setState) {
+    setState(() {
+      if (selected) {
+        selectedNames.add(name);
+      } else {
+        selectedNames.remove(name);
+      }
+    });
   }
 }
