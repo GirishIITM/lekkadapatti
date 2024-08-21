@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:lekkadapatti/utils/functions/date_time.dart';
 import 'package:lekkadapatti/utils/ui/attendance_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,29 +37,8 @@ class WorkManager {
 
   DateTime currentDate;
   Map<String, String> workDetails = {};
-  Map<String, Object> workDataPerDate = {
-    "selectedNames": [],
-    "selectedProject": "",
-    "selectedProjectTypes": [],
-  };
+  Map<String, Map<String, List<String>>> workDataPerDate = {};
   WorkManager({required this.currentDate});
-
-  Future<void> loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final savedNames = prefs.getString("names");
-    final savedProjects = prefs.getString("projects");
-    final savedProjectTypes = prefs.getString("projectTypes");
-    if (savedNames != null) {
-      names = List<String>.from(jsonDecode(savedNames));
-    }
-    if (savedProjects != null) {
-      projects = List<String>.from(jsonDecode(savedProjects));
-    }
-    if (savedProjectTypes != null) {
-      projectTypes = List<String>.from(jsonDecode(savedProjectTypes));
-    }
-  }
 
   Future<void> clearData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -67,31 +47,30 @@ class WorkManager {
 
   Future<void> saveDataForCurrentDate() async {
     final prefs = await SharedPreferences.getInstance();
+    final formatedDate = formattedDate(currentDate);
+    workDataPerDate[formatedDate]?["selectedNames"] = selectedNames;
+    workDataPerDate[formatedDate]?["selectedProject"] =
+        List<String>.from(selectedProject != null ? [selectedProject!] : []);
+    workDataPerDate[formatedDate]?["selectedProjectTypes"] =
+        selectedProjectTypes;
     await prefs.setString('workDataPerDate', json.encode(workDataPerDate));
   }
 
   Future<void> loadDataForCurrentDate({required Function setState}) async {
     final prefs = await SharedPreferences.getInstance();
     final savedWorkDataPerDate = prefs.getString('workDataPerDate');
-    if (savedWorkDataPerDate != null) {
-      final parsedData = json.decode(savedWorkDataPerDate);
-      setState(() {
-        selectedNames = List<String>.from(parsedData["selectedNames"]);
-        selectedProject = parsedData["selectedProject"];
-        selectedProjectTypes =
-            List<String>.from(parsedData["selectedProjectTypes"]);
-        workDataPerDate = parsedData.map((key, value) {
-          if (key == "selectedNames") {
-            return MapEntry(key, List<String>.from(value));
-          } else if (key == "selectedProjectTypes") {
-            return MapEntry(key, List<String>.from(value));
-          } else {
-            return MapEntry(key, value);
-          }
-        });
-      });
-    }
-    loadData();
+
+    final workedDataPerDate = savedWorkDataPerDate != null
+        ? jsonDecode(savedWorkDataPerDate)
+        : <String, Map<String, List<String>>>{};
+    final workData = workedDataPerDate[formattedDate(currentDate)] ?? {};
+
+    setState(() {
+      selectedNames = List<String>.from(workData["selectedNames"] ?? []);
+      selectedProject = workData["selectedProject"] ?? "";
+      selectedProjectTypes =
+          List<String>.from(workData["selectedProjectTypes"] ?? []);
+    });
   }
 
   Future<void> goToPreviousDay({required Function setState}) async {
@@ -134,5 +113,6 @@ class WorkManager {
         selectedNames.remove(name);
       }
     });
+    saveDataForCurrentDate();
   }
 }
