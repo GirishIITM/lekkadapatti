@@ -11,11 +11,45 @@ class Work extends StatefulWidget {
 
 class _WorkState extends State<Work> {
   late WorkManager workManager;
+
   @override
   void initState() {
     super.initState();
     workManager = WorkManager(currentDate: DateTime.now());
-    workManager.loadDataForCurrentDate(setState: setState);
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    await workManager.loadDataForCurrentDate(setState: setState);
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Text(title,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _buildChipSection(String title, List<String> items,
+      bool Function(String) isSelected, Function(bool, String) onSelected) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(title),
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 8.0,
+          children: items
+              .map((item) => FilterChip(
+                    label: Text(item),
+                    selected: isSelected(item),
+                    onSelected: (selected) => onSelected(selected, item),
+                  ))
+              .toList(),
+        ),
+      ],
+    );
   }
 
   @override
@@ -28,63 +62,33 @@ class _WorkState extends State<Work> {
         children: [
           DatePicker(setState: setState, workManager: workManager),
           Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text("Place", style: TextStyle(fontSize: 20)),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8.0,
-                      children: workManager.projects.map((String project) {
-                        return FilterChip(
-                          label: Text(project),
-                          selected: workManager.selectedProject == project,
-                          onSelected: (bool selected) {
-                            workManager.onProjectSelected(
-                                selected, project, setState);
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text("Work Types", style: TextStyle(fontSize: 20)),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8.0,
-                      children:
-                          workManager.projectTypes.map((String projectType) {
-                        return FilterChip(
-                          label: Text(projectType),
-                          selected: workManager.selectedProjectTypes
-                              .contains(projectType),
-                          onSelected: (bool selected) {
-                            workManager.onProjectTypeSelected(
-                                selected, projectType, setState);
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text("Names", style: TextStyle(fontSize: 20)),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8.0,
-                      children: workManager.names.map((String name) {
-                        return FilterChip(
-                          label: Text(name),
-                          selected: workManager.selectedNames.contains(name),
-                          onSelected: (bool selected) {
-                            workManager.onNameSelected(
-                                selected, name, setState);
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
+            child: RefreshIndicator(
+              onRefresh: _loadData,
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                children: [
+                  _buildChipSection(
+                    "Place",
+                    workManager.projects,
+                    (project) => workManager.selectedProject == project,
+                    (selected, project) => workManager.onProjectSelected(
+                        selected, project, setState),
+                  ),
+                  _buildChipSection(
+                    "Work Types",
+                    workManager.projectTypes,
+                    (type) => workManager.selectedProjectTypes.contains(type),
+                    (selected, type) => workManager.onProjectTypeSelected(
+                        selected, type, setState),
+                  ),
+                  _buildChipSection(
+                    "Names",
+                    workManager.names,
+                    (name) => workManager.selectedNames.contains(name),
+                    (selected, name) =>
+                        workManager.onNameSelected(selected, name, setState),
+                  ),
+                ],
               ),
             ),
           ),

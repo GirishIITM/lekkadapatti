@@ -44,3 +44,4 @@ app.*.map.json
 
 # credentials
 /assets/g_sheet_creds.json
+.codiumai/
