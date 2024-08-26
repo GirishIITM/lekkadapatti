@@ -11,7 +11,7 @@ String getYearWeekFromDate(DateTime date) {
   return '$year-W${weekNumber.toString().padLeft(2, '0')}';
 }
 
-String formattedDate(DateTime currentDate) {
+String formatDate(DateTime currentDate) {
   return "${currentDate.day}/${currentDate.month}/${currentDate.year}";
 }
 

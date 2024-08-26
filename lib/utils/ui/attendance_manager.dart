@@ -78,8 +78,8 @@ class AttendanceManager {
       }
 
       setState(() {
-        attendance = attendanceDataPerDate[formattedDate(currentDate)] ?? {};
-        status = groupDataPerDate[formattedDate(currentDate)] ?? status;
+        attendance = attendanceDataPerDate[formatDate(currentDate)] ?? {};
+        status = groupDataPerDate[formatDate(currentDate)] ?? status;
         names = names;
         groups = groups;
       });
@@ -129,7 +129,7 @@ class AttendanceManager {
         "male": 0,
         "female": 0,
       };
-      groupDataPerDate[formattedDate(currentDate)] = status;
+      groupDataPerDate[formatDate(currentDate)] = status;
     });
     saveAttendanceAndGroupData();
   }
@@ -145,11 +145,11 @@ class AttendanceManager {
   void onIncrement(
       String groupName, String type, int count, Function setState) {
     status[groupName]?[type] = count + 1;
-    if (groupDataPerDate[formattedDate(currentDate)] == null) {
-      groupDataPerDate[formattedDate(currentDate)] = {};
+    if (groupDataPerDate[formatDate(currentDate)] == null) {
+      groupDataPerDate[formatDate(currentDate)] = {};
     }
     setState(() {
-      groupDataPerDate[formattedDate(currentDate)]?[groupName] =
+      groupDataPerDate[formatDate(currentDate)]?[groupName] =
           status[groupName]!;
     });
     saveAttendanceAndGroupData();
@@ -159,11 +159,11 @@ class AttendanceManager {
       String groupName, String type, int count, Function setState) {
     if (count > 0) {
       status[groupName]?[type] = count - 1;
-      if (groupDataPerDate[formattedDate(currentDate)] == null) {
-        groupDataPerDate[formattedDate(currentDate)] = {};
+      if (groupDataPerDate[formatDate(currentDate)] == null) {
+        groupDataPerDate[formatDate(currentDate)] = {};
       }
       setState(() {
-        groupDataPerDate[formattedDate(currentDate)]?[groupName] =
+        groupDataPerDate[formatDate(currentDate)]?[groupName] =
             status[groupName]!;
       });
     }
@@ -184,8 +184,8 @@ class AttendanceManager {
   }
 
   void saveDataForCurrentDate() {
-    attendanceDataPerDate[formattedDate(currentDate)] = attendance;
-    groupDataPerDate[formattedDate(currentDate)] = status;
+    attendanceDataPerDate[formatDate(currentDate)] = attendance;
+    groupDataPerDate[formatDate(currentDate)] = status;
     saveAttendanceAndGroupData();
   }
 
@@ -195,8 +195,8 @@ class AttendanceManager {
       initStatus[group] = {"male": 0, "femaile": 0};
     }
     setState(() {
-      attendance = attendanceDataPerDate[formattedDate(currentDate)] ?? {};
-      status = groupDataPerDate[formattedDate(currentDate)] ?? initStatus;
+      attendance = attendanceDataPerDate[formatDate(currentDate)] ?? {};
+      status = groupDataPerDate[formatDate(currentDate)] ?? initStatus;
     });
   }
 

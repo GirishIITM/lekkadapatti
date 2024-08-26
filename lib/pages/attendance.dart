@@ -3,6 +3,7 @@ import 'package:lekkadapatti/components/attendance_date_picker.dart';
 import 'package:lekkadapatti/components/group/attendance_group.dart';
 import 'package:lekkadapatti/components/individual/attendance_options.dart';
 import 'package:lekkadapatti/components/individual/name_list.dart';
+import 'package:lekkadapatti/pages/employe_details.dart';
 import 'package:lekkadapatti/utils/ui/attendance_manager.dart';
 
 class AttendanceScreen extends StatefulWidget {
@@ -55,8 +56,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       itemBuilder: (context, index) {
         String name = attendanceManager.names[index];
         return Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: GestureDetector(
+            onTap: () {
+              // Perform the navigation here
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EmployeDetails(),
+                ),
+              );
+            },
             child: Card(
               elevation: 5,
               shape: RoundedRectangleBorder(
@@ -81,7 +91,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   },
                 ),
               ),
-            ));
+            ),
+          ),
+        );
       },
     );
   }

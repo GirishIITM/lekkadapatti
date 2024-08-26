@@ -39,7 +39,7 @@ class DatePicker extends StatelessWidget {
           GestureDetector(
             onTap: () => _selectDate(context),
             child: Text(
-              '${formattedDate(attendanceManager.currentDate)} ${daysInKannada[attendanceManager.currentDate.weekday - 1]}',
+              '${formatDate(attendanceManager.currentDate)} ${daysInKannada[attendanceManager.currentDate.weekday - 1]}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
