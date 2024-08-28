@@ -4,6 +4,7 @@ import 'package:lekkadapatti/components/group/attendance_group.dart';
 import 'package:lekkadapatti/components/individual/attendance_options.dart';
 import 'package:lekkadapatti/components/individual/name_list.dart';
 import 'package:lekkadapatti/pages/employe_details.dart';
+import 'package:lekkadapatti/utils/functions/gheet_sync.dart';
 import 'package:lekkadapatti/utils/ui/attendance_manager.dart';
 
 class AttendanceScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     super.initState();
     attendanceManager = AttendanceManager(currentDate: DateTime.now());
     attendanceManager.loadAttendanceDataPerDate(setState: setState);
+    fetchGsheet();
   }
 
   @override
@@ -138,8 +140,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             onPressed: () async {
               String? groupName = await _showNameInputDialog(context);
               if (groupName != null && groupName.isNotEmpty) {
-                attendanceManager.addGroup(
-                    groupName: groupName, setState: setState);
+                attendanceManager.addGroup(groupName: groupName, setState: setState);
               }
             },
             child: const Text('Add Group'),

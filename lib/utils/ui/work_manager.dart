@@ -53,16 +53,16 @@ class WorkManager {
     await prefs.remove('projects');
   }
 
-  Future<void> loadData() async {
+  Future<void> loadDefaultData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final savedNames = prefs.getString("names");
       final savedProjectTypes = prefs.getString("projectTypes");
       final savedProject = prefs.getString("projects");
+      // final savedNames = prefs.getString("names");
 
-      if (savedNames != null) {
-        names = List<String>.from(jsonDecode(savedNames));
-      }
+      // if (savedNames != null) {
+      // names = List<String>.from(jsonDecode(savedNames));
+      // }
       if (savedProjectTypes != null) {
         projectTypes = List<String>.from(jsonDecode(savedProjectTypes));
       }
@@ -85,8 +85,7 @@ class WorkManager {
     }
   }
 
-  Future<void> addData(
-      {String? name, String? projectType, String? project,required Function setState}) async {
+  Future<void> addData({String? name, String? projectType, String? project, required Function setState}) async {
     try {
       if (name != null) names.add(name);
       if (projectType != null) projectTypes.add(projectType);
@@ -102,18 +101,14 @@ class WorkManager {
     try {
       final prefs = await SharedPreferences.getInstance();
       final formatedDate = formatDate(currentDate);
-      if (workDataPerDate[formatedDate] == null)
-        workDataPerDate[formatedDate] = {};
+      if (workDataPerDate[formatedDate] == null) workDataPerDate[formatedDate] = {};
 
-      if (workDataPerDate[formatedDate] != null &&
-          workDataPerDate[formatedDate] != {}) {
+      if (workDataPerDate[formatedDate] != null && workDataPerDate[formatedDate] != {}) {
         workDataPerDate[formatedDate]?["selectedNames"] = selectedNames;
         workDataPerDate[formatedDate]?["selectedProject"] = selectedProject;
-        workDataPerDate[formatedDate]?["selectedProjectTypes"] =
-            selectedProjectTypes;
+        workDataPerDate[formatedDate]?["selectedProjectTypes"] = selectedProjectTypes;
         try {
-          await prefs.setString(
-              'workDataPerDate', json.encode(workDataPerDate));
+          await prefs.setString('workDataPerDate', json.encode(workDataPerDate));
         } catch (e) {
           errorLogger(e);
         }
@@ -124,14 +119,13 @@ class WorkManager {
   }
 
   Future<void> loadDataForCurrentDate({required Function setState}) async {
-    loadData();
+    loadDefaultData();
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedWorkDataPerDate = prefs.getString('workDataPerDate');
 
-      final workedDataPerDate = savedWorkDataPerDate != null
-          ? jsonDecode(savedWorkDataPerDate)
-          : <String, Map<String, List<String>>>{};
+      final workedDataPerDate =
+          savedWorkDataPerDate != null ? jsonDecode(savedWorkDataPerDate) : <String, Map<String, List<String>>>{};
       final workData = workedDataPerDate[formatDate(currentDate)] ??
           {
             "selectedNames": [],
@@ -141,8 +135,7 @@ class WorkManager {
 
       selectedNames = List<String>.from(workData["selectedNames"] ?? []);
       selectedProject = List<String>.from(workData["selectedProject"] ?? []);
-      selectedProjectTypes =
-          List<String>.from(workData["selectedProjectTypes"] ?? []);
+      selectedProjectTypes = List<String>.from(workData["selectedProjectTypes"] ?? []);
       setState(() {});
     } catch (e) {
       errorLogger(e);
@@ -183,12 +176,9 @@ class WorkManager {
     }
   }
 
-  void onProjectTypeSelected(
-      bool selected, String projectType, Function setState) {
+  void onProjectTypeSelected(bool selected, String projectType, Function setState) {
     try {
-      selected
-          ? selectedProjectTypes.add(projectType)
-          : selectedProjectTypes.remove(projectType);
+      selected ? selectedProjectTypes.add(projectType) : selectedProjectTypes.remove(projectType);
       setState(() {});
       saveDataForCurrentDate(setState);
     } catch (e) {

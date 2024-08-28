@@ -26,7 +26,7 @@ Future<void> fetchGsheet() async {
       };
     }).toList();
 
-    if (kDebugMode) logger(dataFormatted);
+    logger(dataFormatted);
   } on Exception catch (e) {
     errorLogger('Error: $e');
     logger('StackTrace: ${StackTrace.current}');
