@@ -36,8 +36,7 @@ class AttendanceManager {
   Future<void> loadAttendanceDataPerDate({required Function setState}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final savedAttendanceDataPerDate =
-          prefs.getString('attendanceDataPerDate');
+      final savedAttendanceDataPerDate = prefs.getString('attendanceDataPerDate');
       final savedGroupDataPerDate = prefs.getString('groupDataPerDate');
       final savedNames = prefs.getString("names");
       final savedGroups = prefs.getString("groups");
@@ -52,14 +51,12 @@ class AttendanceManager {
 
       if (savedAttendanceDataPerDate != null) {
         attendanceDataPerDate = Map<String, Map<String, String>>.from(
-          jsonDecode(savedAttendanceDataPerDate).map(
-              (key, value) => MapEntry(key, Map<String, String>.from(value))),
+          jsonDecode(savedAttendanceDataPerDate).map((key, value) => MapEntry(key, Map<String, String>.from(value))),
         );
       }
 
       if (savedGroupDataPerDate != null) {
-        final Map<String, dynamic> decodedData =
-            jsonDecode(savedGroupDataPerDate);
+        final Map<String, dynamic> decodedData = jsonDecode(savedGroupDataPerDate);
         groupDataPerDate = Map<String, Map<String, Map<String, int>>>.from(
           decodedData.map(
             (key, value) => MapEntry(
@@ -91,8 +88,7 @@ class AttendanceManager {
   Future<void> saveAttendanceAndGroupData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-          'attendanceDataPerDate', jsonEncode(attendanceDataPerDate));
+      await prefs.setString('attendanceDataPerDate', jsonEncode(attendanceDataPerDate));
       await prefs.setString('groupDataPerDate', jsonEncode(groupDataPerDate));
       await prefs.setString("names", jsonEncode(names));
       await prefs.setString("groups", jsonEncode(groups));
@@ -110,8 +106,7 @@ class AttendanceManager {
       attendance[name] = status;
     });
     saveAttendanceAndGroupData();
-    insertData(currentDate,
-        {'Name': name, 'Date': dateToGsheets(currentDate), 'Status': status});
+    insertData(currentDate, [name, status, formatDate(currentDate)]);
   }
 
   void addName({required String name, required Function setState}) {
@@ -142,29 +137,25 @@ class AttendanceManager {
     saveAttendanceAndGroupData();
   }
 
-  void onIncrement(
-      String groupName, String type, int count, Function setState) {
+  void onIncrement(String groupName, String type, int count, Function setState) {
     status[groupName]?[type] = count + 1;
     if (groupDataPerDate[formatDate(currentDate)] == null) {
       groupDataPerDate[formatDate(currentDate)] = {};
     }
     setState(() {
-      groupDataPerDate[formatDate(currentDate)]?[groupName] =
-          status[groupName]!;
+      groupDataPerDate[formatDate(currentDate)]?[groupName] = status[groupName]!;
     });
     saveAttendanceAndGroupData();
   }
 
-  void onDecrement(
-      String groupName, String type, int count, Function setState) {
+  void onDecrement(String groupName, String type, int count, Function setState) {
     if (count > 0) {
       status[groupName]?[type] = count - 1;
       if (groupDataPerDate[formatDate(currentDate)] == null) {
         groupDataPerDate[formatDate(currentDate)] = {};
       }
       setState(() {
-        groupDataPerDate[formatDate(currentDate)]?[groupName] =
-            status[groupName]!;
+        groupDataPerDate[formatDate(currentDate)]?[groupName] = status[groupName]!;
       });
     }
     saveAttendanceAndGroupData();
@@ -200,10 +191,7 @@ class AttendanceManager {
     });
   }
 
-  void editName(
-      {required String oldName,
-      required String newName,
-      required Function setState}) {
+  void editName({required String oldName, required String newName, required Function setState}) {
     final index = names.indexOf(oldName);
     setState(() {
       names[index] = newName;

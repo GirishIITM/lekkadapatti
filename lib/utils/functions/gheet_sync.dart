@@ -4,19 +4,20 @@ import 'package:flutter/services.dart';
 import 'package:lekkadapatti/utils/functions/date_time.dart';
 import 'package:lekkadapatti/utils/functions/logger.dart';
 
+const spreadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
+const rowStartDate = "5/9/2024";
+
 Future<String> readJson() async {
   return await rootBundle.loadString('assets/g_sheet_creds.json');
 }
 
 Future<void> fetchGsheet() async {
   try {
-    const spreadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
     final credentials = await readJson();
     final sheets = GSheets(credentials);
     final ss = await sheets.spreadsheet(spreadSheetId);
 
-    var data = await ss.sheets.first.values.map.allRows()
-        as List<Map<String, dynamic>>?;
+    var data = await ss.sheets.first.values.map.allRows() as List<Map<String, dynamic>>?;
     final dataFormatted = data?.map((element) {
       if (kDebugMode) logger(element);
       return {
@@ -33,49 +34,55 @@ Future<void> fetchGsheet() async {
   }
 }
 
-Future<void> insertData(DateTime date, Map<String, dynamic> data) async {
+Future<void> insertData(DateTime date, List<String> data) async {
   try {
     const spreadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
     final credentials = await readJson();
     final sheets = GSheets(credentials);
-    final sheetName = getYearWeekFromDate(date);
     final ss = await sheets.spreadsheet(spreadSheetId);
-    var sheet = ss.worksheetByTitle(sheetName);
 
-    sheet ??= await ss.addWorksheet(sheetName);
+    final sheet = ss.sheets.first;
+    final allRows = await sheet.values.allRows();
 
-    final rowIndex = date.day;
+    final dateString = formatDate(date);
 
-    var res = await sheet.values.map.insertRow(rowIndex, data);
-    logger(data, rowIndex);
-    logger('inserted row $rowIndex of sheet $sheetName.',
-        res ? "Success" : "Failed");
+    final nextEmptyRow = allRows.length + 1; // Calculate the next available row
+
+    await sheet.values.insertRow(nextEmptyRow, [dateString, ...data]);
   } on Exception catch (e) {
     errorLogger("Error: $e");
     logger("StackTrace: ${StackTrace.current}");
   }
 }
 
-Future<void> updateData(DateTime date, Map<String, String> data) async {
+
+
+Future<void> updateAttendanceForDate(DateTime date, String name, String status) async {
   try {
-    const spredadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
+    const spreadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
     final credentials = await readJson();
-    final gsheets = GSheets(credentials);
-    final sheetName = getYearWeekFromDate(date);
-    final ss = await gsheets.spreadsheet(spredadSheetId);
-    var sheet = ss.worksheetByTitle(sheetName);
+    final sheets = GSheets(credentials);
+    final ss = await sheets.spreadsheet(spreadSheetId);
+    
+    final dateString = formatDate(date);
 
-    if (sheet == null) {
-      logger('Sheet $sheetName does not exist.');
-      return;
+    final sheet = ss.sheets.first;
+    final allRows = await sheet.values.allRows(); // Fetches all rows
+
+    for (int i = 0; i < allRows.length; i++) {
+      final row = allRows[i];
+      if (row.contains(dateString)) {
+        final rowIndex = i + 1; // Since sheet rows are 1-based
+        final nameIndex = row.indexOf(name);
+        
+        if (nameIndex != -1) {
+          await sheet.values.insertValue(status, column: nameIndex + 1, row: rowIndex);
+        }
+      }
     }
-
-    final rowIndex = date.day;
-
-    await sheet.values.map.insertRow(rowIndex, data);
-
-    logger('Data updated in row $rowIndex of sheet $sheetName.');
   } on Exception catch (e) {
-    errorLogger(e);
+    errorLogger("Error: $e");
+    logger("StackTrace: ${StackTrace.current}");
   }
 }
+

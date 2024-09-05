@@ -22,7 +22,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     super.initState();
     attendanceManager = AttendanceManager(currentDate: DateTime.now());
     attendanceManager.loadAttendanceDataPerDate(setState: setState);
-    fetchGsheet();
   }
 
   @override
