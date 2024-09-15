@@ -4,7 +4,6 @@ import 'package:lekkadapatti/components/group/attendance_group.dart';
 import 'package:lekkadapatti/components/individual/attendance_options.dart';
 import 'package:lekkadapatti/components/individual/name_list.dart';
 import 'package:lekkadapatti/pages/employe_details.dart';
-import 'package:lekkadapatti/utils/functions/gheet_sync.dart';
 import 'package:lekkadapatti/utils/ui/attendance_manager.dart';
 
 class AttendanceScreen extends StatefulWidget {
@@ -64,7 +63,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const EmployeDetails(),
+                  builder: (context) => EmployeDetails(
+                    name: name,
+                  ),
                 ),
               );
             },

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class EmployeDetails extends StatefulWidget {
-  const EmployeDetails({super.key});
+  final String name;
+
+  const EmployeDetails({super.key, required this.name});
 
   @override
   State<EmployeDetails> createState() => _EmployeDetailsState();
@@ -14,7 +16,6 @@ class _EmployeDetailsState extends State<EmployeDetails> {
   int perDaySalary = 500;
   int totalPaidAmount = 0;
 
-  // Sample data, replace with actual data loading
   void loadEmployeeData() {
     setState(() {
       presentDays = 20;

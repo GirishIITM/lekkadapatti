@@ -5,7 +5,7 @@ import 'package:lekkadapatti/utils/functions/date_time.dart';
 import 'package:lekkadapatti/utils/functions/logger.dart';
 
 const spreadSheetId = '1q9P-1regUnlaolI-rpwK37zK4vX-0SnIR7Y0Jo3ucLk';
-const rowStartDate = "5/9/2024";
+const rowStartDate = "15/9/2024";
 
 Future<String> readJson() async {
   return await rootBundle.loadString('assets/g_sheet_creds.json');
