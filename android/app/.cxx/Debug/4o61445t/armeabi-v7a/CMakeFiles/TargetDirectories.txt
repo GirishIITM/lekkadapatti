@@ -1,0 +1,2 @@
+/home/gir/Desktop/programming/lekkadapatti/android/app/.cxx/Debug/4o61445t/armeabi-v7a/CMakeFiles/rebuild_cache.dir
+/home/gir/Desktop/programming/lekkadapatti/android/app/.cxx/Debug/4o61445t/armeabi-v7a/CMakeFiles/edit_cache.dir
