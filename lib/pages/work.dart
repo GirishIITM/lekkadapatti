@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lekkadapatti/components/work_date_picker.dart';
-import 'package:lekkadapatti/utils/ui/work_manager.dart';
+import 'package:lekkadapatti/utils/project_manager.dart';
+import 'package:uuid/uuid.dart';
+import 'project_details.dart';
 
 class Work extends StatefulWidget {
   const Work({super.key});
@@ -10,73 +11,67 @@ class Work extends StatefulWidget {
 }
 
 class _WorkState extends State<Work> {
-  late WorkManager workManager;
+  final ProjectManager projectManager = ProjectManager();
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    workManager = WorkManager(currentDate: DateTime.now());
-    _loadData();
+    _loadProjects();
   }
 
-  Future<void> _loadData() async {
-    await workManager.loadDataForCurrentDate(setState: setState);
+  Future<void> _loadProjects() async {
+    await projectManager.loadProjects();
+    setState(() {
+      isLoading = false;
+    });
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Text(title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _buildChipSection(String title, List<String> items,
-      bool Function(String) isSelected, Function(bool, String) onSelected) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle(title),
-        Wrap(
-          spacing: 8.0,
-          runSpacing: 8.0,
-          children: items
-              .map((item) => FilterChip(
-                    label: Text(item),
-                    selected: isSelected(item),
-                    onSelected: (selected) => onSelected(selected, item),
-                    selectedColor: Colors.blue.withOpacity(0.3),
-                    checkmarkColor: Colors.blue,
-                  ))
-              .toList(),
-        ),
-      ],
-    );
-  }
-
-  Future<String?> _showNameInputDialog(BuildContext context) async {
+  void _addProjectDialog() async {
     String name = "";
-    return showDialog<String>(
+    String group = "";
+    double budget = 0.0;
+    await showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
-          title: const Text('Enter Name'),
-          content: TextField(
-            onChanged: (value) {
-              name = value;
-            },
-            decoration: const InputDecoration(hintText: "Enter name here"),
+          title: const Text('Add Project/Contract'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(labelText: 'Project Name'),
+                onChanged: (v) => name = v,
+              ),
+              TextField(
+                decoration: const InputDecoration(labelText: 'Group Name'),
+                onChanged: (v) => group = v,
+              ),
+              TextField(
+                decoration: const InputDecoration(labelText: 'Budget'),
+                keyboardType: TextInputType.number,
+                onChanged: (v) => budget = double.tryParse(v) ?? 0.0,
+              ),
+            ],
           ),
-          actions: <Widget>[
+          actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop(name);
+                if (name.isNotEmpty && group.isNotEmpty) {
+                  final project = Project(
+                    id: const Uuid().v4(),
+                    name: name,
+                    groupName: group,
+                    budget: budget,
+                  );
+                  projectManager.addProject(project);
+                  setState(() {});
+                }
+                Navigator.pop(context);
               },
               child: const Text('Add'),
             ),
@@ -86,29 +81,21 @@ class _WorkState extends State<Work> {
     );
   }
 
-  Widget _buildAddButtons() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
-      child: Wrap(
-        spacing: 8.0,
-        alignment: WrapAlignment.center,
-        children: [
-          // ElevatedButton(
-          //   onPressed: () => _showNameInputDialog(context).then((newName) =>
-          //       workManager.addData(setState: setState, name: newName)),
-          //   child: const Text('Add name'),
-          // ),
-          ElevatedButton(
-            onPressed: () => _showNameInputDialog(context).then((newGroup) =>
-                workManager.addData(setState: setState, project: newGroup)),
-            child: const Text('Add place'),
-          ),
-          ElevatedButton(
-            onPressed: () => workManager.addData(
-                setState: setState, projectType: 'New Work Type'),
-            child: const Text('Add type'),
-          ),
-        ],
+  Widget _buildProjectCard(Project project) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListTile(
+        title: Text(project.name),
+        subtitle: Text('Group: ${project.groupName}\nBudget: ₹${project.budget.toStringAsFixed(2)}'),
+        trailing: const Icon(Icons.arrow_forward_ios),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProjectDetails(projectId: project.id, projectManager: projectManager),
+            ),
+          ).then((_) => setState(() {}));
+        },
       ),
     );
   }
@@ -116,46 +103,39 @@ class _WorkState extends State<Work> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Project Details'),
-      ),
-      body: Column(
-        children: [
-          DatePicker(setState: setState, workManager: workManager),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadData,
+      appBar: AppBar(title: const Text('Projects & Contracts')),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadProjects,
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.all(16),
                 children: [
-                  _buildChipSection(
-                    "Place",
-                    workManager.projects,
-                    (project) => workManager.selectedProject.contains(project),
-                    (selected, project) => workManager.onProjectSelected(
-                        selected, project, setState),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Ongoing Projects/Contracts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: _addProjectDialog,
+                        tooltip: 'Add Project/Contract',
+                      ),
+                    ],
                   ),
-                  _buildChipSection(
-                    "Work Types",
-                    workManager.projectTypes,
-                    (type) => workManager.selectedProjectTypes.contains(type),
-                    (selected, type) => workManager.onProjectTypeSelected(
-                        selected, type, setState),
-                  ),
-                  // _buildChipSection(
-                  //   "Names",
-                  //   workManager.names,
-                  //   (name) => workManager.selectedNames.contains(name),
-                  //   (selected, name) =>
-                  //       workManager.onNameSelected(selected, name, setState),
-                  // ),
-                  _buildAddButtons(),
+                  ...projectManager.projects.map(_buildProjectCard).toList(),
+                  const SizedBox(height: 24),
+                  const Text('Subcontracts (Forwarded)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ...projectManager.projects.expand((p) => p.subContracts).map((sub) => Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        child: ListTile(
+                          title: Text(sub.name),
+                          subtitle: Text('To Group: ${sub.toGroup}\nBudget: ₹${sub.budget.toStringAsFixed(2)}'),
+                        ),
+                      )),
+                  // Allocated projects can be shown similarly if needed
                 ],
               ),
             ),
-          ),
-        ],
-      ),
     );
   }
 }
