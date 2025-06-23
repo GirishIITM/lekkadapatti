@@ -65,6 +65,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 MaterialPageRoute(
                   builder: (context) => EmployeDetails(
                     name: name,
+                    attendanceManager: attendanceManager,
                   ),
                 ),
               );

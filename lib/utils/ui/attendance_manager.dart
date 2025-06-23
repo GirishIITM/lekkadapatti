@@ -22,6 +22,7 @@ class AttendanceManager {
   ];
 
   List<String> groups = ["Hindesgeri (ಹಿಂಡಸಗೇರಿ)"];
+  Map<String, List<Map<String, dynamic>>> paymentHistory = {};
 
   AttendanceManager({required this.currentDate});
 
@@ -40,6 +41,7 @@ class AttendanceManager {
       final savedGroupDataPerDate = prefs.getString('groupDataPerDate');
       final savedNames = prefs.getString("names");
       final savedGroups = prefs.getString("groups");
+      final savedPaymentHistory = prefs.getString("paymentHistory");
 
       if (savedNames != null) {
         names = List<String>.from(jsonDecode(savedNames));
@@ -74,6 +76,18 @@ class AttendanceManager {
         );
       }
 
+      if (savedPaymentHistory != null) {
+        final Map<String, dynamic> decodedPayments = jsonDecode(savedPaymentHistory);
+        paymentHistory = Map<String, List<Map<String, dynamic>>>.from(
+          decodedPayments.map(
+            (key, value) => MapEntry(
+              key,
+              List<Map<String, dynamic>>.from(value),
+            ),
+          ),
+        );
+      }
+
       setState(() {
         attendance = attendanceDataPerDate[formatDate(currentDate)] ?? {};
         status = groupDataPerDate[formatDate(currentDate)] ?? status;
@@ -92,6 +106,7 @@ class AttendanceManager {
       await prefs.setString('groupDataPerDate', jsonEncode(groupDataPerDate));
       await prefs.setString("names", jsonEncode(names));
       await prefs.setString("groups", jsonEncode(groups));
+      await prefs.setString("paymentHistory", jsonEncode(paymentHistory));
     } on Exception catch (e) {
       errorLogger(e);
     }
@@ -183,7 +198,7 @@ class AttendanceManager {
   void loadDataForCurrentDate({required Function setState}) {
     Map<String, Map<String, int>> initStatus = {};
     for (var group in groups) {
-      initStatus[group] = {"male": 0, "femaile": 0};
+      initStatus[group] = {"male": 0, "female": 0};
     }
     setState(() {
       attendance = attendanceDataPerDate[formatDate(currentDate)] ?? {};
@@ -208,6 +223,95 @@ class AttendanceManager {
       names = names;
     });
     saveAttendanceAndGroupData();
+  }
+
+  Map<String, int> getAttendanceStats(String employeName) {
+    int presentDays = 0;
+    int absentDays = 0;
+    int halfDays = 0;
+
+    for (var dateData in attendanceDataPerDate.values) {
+      final status = dateData[employeName];
+      if (status == 'Present') {
+        presentDays++;
+      } else if (status == 'Absent') {
+        absentDays++;
+      } else if (status == 'Half Day') {
+        halfDays++;
+      }
+    }
+
+    return {
+      'present': presentDays,
+      'absent': absentDays,
+      'halfDay': halfDays,
+    };
+  }
+
+  void addPayment({
+    required String employeName,
+    required double amount,
+    required String note,
+    required Function setState,
+  }) {
+    if (paymentHistory[employeName] == null) {
+      paymentHistory[employeName] = [];
+    }
+
+    paymentHistory[employeName]!.add({
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'amount': amount,
+      'note': note,
+      'date': formatDate(DateTime.now()),
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+
+    setState(() {});
+    saveAttendanceAndGroupData();
+  }
+
+  void editPayment({
+    required String employeName,
+    required String paymentId,
+    required double newAmount,
+    required String newNote,
+    required Function setState,
+  }) {
+    if (paymentHistory[employeName] != null) {
+      final paymentIndex = paymentHistory[employeName]!
+          .indexWhere((payment) => payment['id'] == paymentId);
+
+      if (paymentIndex != -1) {
+        paymentHistory[employeName]![paymentIndex]['amount'] = newAmount;
+        paymentHistory[employeName]![paymentIndex]['note'] = newNote;
+        setState(() {});
+        saveAttendanceAndGroupData();
+      }
+    }
+  }
+
+  void deletePayment({
+    required String employeName,
+    required String paymentId,
+    required Function setState,
+  }) {
+    if (paymentHistory[employeName] != null) {
+      paymentHistory[employeName]!
+          .removeWhere((payment) => payment['id'] == paymentId);
+      setState(() {});
+      saveAttendanceAndGroupData();
+    }
+  }
+
+  double getTotalPaidAmount(String employeName) {
+    if (paymentHistory[employeName] == null) return 0.0;
+
+    return paymentHistory[employeName]!
+        .fold(0.0, (sum, payment) => sum + (payment['amount'] as double));
+  }
+
+  List<Map<String, dynamic>> getPaymentHistory(String employeName) {
+    return paymentHistory[employeName] ?? [];
   }
 }
 
