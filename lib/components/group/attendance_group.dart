@@ -174,9 +174,9 @@ class _AttendanceGroupState extends State<AttendanceGroup> {
               selected: isSelected,
               onSelected: (selected) {
                 widget.attendanceManager.onGroupProjectSelected(
-                  selected,
                   widget.groupName,
                   project,
+                  selected,
                   setState,
                 );
                 _loadSelections();

@@ -50,9 +50,23 @@ class AttendanceManager {
   ];
   Map<String, Map<String, List<String>>> groupSelectedWorkTypesPerDate = {};
 
+  // Add workplace to group mapping
+  Map<String, String> workplaceToGroupMapping = {};
+
   AttendanceManager({required this.currentDate}) {
     for (String group in groups) {
       groupRates[group] = {"male": 200, "female": 200};
+    }
+    // Initialize default workplace mappings
+    _initializeDefaultWorkplaceMappings();
+  }
+
+  void _initializeDefaultWorkplaceMappings() {
+    // Set default mappings - can be customized later
+    for (String project in projects) {
+      if (!workplaceToGroupMapping.containsKey(project)) {
+        workplaceToGroupMapping[project] = groups.isNotEmpty ? groups.first : "";
+      }
     }
   }
 
@@ -69,6 +83,7 @@ class AttendanceManager {
     await prefs.remove('groupSelectedProjectsPerDate');
     await prefs.remove('workTypes');
     await prefs.remove('groupSelectedWorkTypesPerDate');
+    await prefs.remove('workplaceToGroupMapping');
   }
 
   Future<void> loadAttendanceDataPerDate({required Function setState}) async {
@@ -85,6 +100,7 @@ class AttendanceManager {
       final savedGroupSelectedProjectsPerDate = prefs.getString("groupSelectedProjectsPerDate");
       final savedWorkTypes = prefs.getString("workTypes");
       final savedGroupSelectedWorkTypesPerDate = prefs.getString("groupSelectedWorkTypesPerDate");
+      final savedWorkplaceToGroupMapping = prefs.getString("workplaceToGroupMapping");
 
       if (savedNames != null) {
         names = List<String>.from(jsonDecode(savedNames));
@@ -200,6 +216,10 @@ class AttendanceManager {
         );
       }
 
+      if (savedWorkplaceToGroupMapping != null) {
+        workplaceToGroupMapping = Map<String, String>.from(jsonDecode(savedWorkplaceToGroupMapping));
+      }
+
       for (String group in groups) {
         if (!groupRates.containsKey(group)) {
           groupRates[group] = {"male": 200, "female": 200};
@@ -253,6 +273,7 @@ class AttendanceManager {
       await prefs.setString("groupSelectedProjectsPerDate", jsonEncode(groupSelectedProjectsPerDate));
       await prefs.setString("workTypes", jsonEncode(workTypes));
       await prefs.setString("groupSelectedWorkTypesPerDate", jsonEncode(groupSelectedWorkTypesPerDate));
+      await prefs.setString("workplaceToGroupMapping", jsonEncode(workplaceToGroupMapping));
     } on Exception catch (e) {
       errorLogger(e);
     }
@@ -578,36 +599,30 @@ class AttendanceManager {
     if (projects.contains(project) || project.isEmpty) return;
     setState(() {
       projects.add(project);
-    });
-    saveAttendanceAndGroupData();
-  }
-
-  void onGroupProjectSelected(bool selected, String groupName, String project, Function setState) {
-    final dateKey = formatDate(currentDate);
-    
-    if (groupSelectedProjectsPerDate[dateKey] == null) {
-      groupSelectedProjectsPerDate[dateKey] = {};
-    }
-    
-    if (groupSelectedProjectsPerDate[dateKey]![groupName] == null) {
-      groupSelectedProjectsPerDate[dateKey]![groupName] = [];
-    }
-    
-    setState(() {
-      if (selected) {
-        if (!groupSelectedProjectsPerDate[dateKey]![groupName]!.contains(project)) {
-          groupSelectedProjectsPerDate[dateKey]![groupName]!.add(project);
-        }
-      } else {
-        groupSelectedProjectsPerDate[dateKey]![groupName]!.remove(project);
+      // Assign to first available group by default
+      if (groups.isNotEmpty) {
+        workplaceToGroupMapping[project] = groups.first;
       }
     });
     saveAttendanceAndGroupData();
   }
 
-  List<String> getGroupSelectedProjects(String groupName) {
-    final dateKey = formatDate(currentDate);
-    return groupSelectedProjectsPerDate[dateKey]?[groupName] ?? [];
+  String getGroupForWorkplace(String workplace) {
+    return workplaceToGroupMapping[workplace] ?? "";
+  }
+
+  void updateWorkplaceGroupMapping(String workplace, String group, Function setState) {
+    setState(() {
+      workplaceToGroupMapping[workplace] = group;
+    });
+    saveAttendanceAndGroupData();
+  }
+
+  List<String> getWorkplacesForGroup(String groupName) {
+    return workplaceToGroupMapping.entries
+        .where((entry) => entry.value == groupName)
+        .map((entry) => entry.key)
+        .toList();
   }
 
   // Work type selection methods
@@ -640,6 +655,36 @@ class AttendanceManager {
     if (workTypes.contains(workType) || workType.isEmpty) return;
     setState(() {
       workTypes.add(workType);
+    });
+    saveAttendanceAndGroupData();
+  }
+
+  List<String> getGroupSelectedProjects(String groupName) {
+    // TODO: Implement logic to return selected projects for the group
+    return [];
+  }
+
+  void onGroupProjectSelected(
+    String groupName,
+    String projectName,
+    bool selected,
+    Function setState,
+  ) {
+    final dateKey = formatDate(currentDate);
+    if (groupSelectedProjectsPerDate[dateKey] == null) {
+      groupSelectedProjectsPerDate[dateKey] = {};
+    }
+    if (groupSelectedProjectsPerDate[dateKey]![groupName] == null) {
+      groupSelectedProjectsPerDate[dateKey]![groupName] = [];
+    }
+    setState(() {
+      if (selected) {
+        if (!groupSelectedProjectsPerDate[dateKey]![groupName]!.contains(projectName)) {
+          groupSelectedProjectsPerDate[dateKey]![groupName]!.add(projectName);
+        }
+      } else {
+        groupSelectedProjectsPerDate[dateKey]![groupName]!.remove(projectName);
+      }
     });
     saveAttendanceAndGroupData();
   }

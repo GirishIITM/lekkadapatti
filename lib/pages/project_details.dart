@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lekkadapatti/utils/models/project.dart';
 import 'package:lekkadapatti/utils/project_manager.dart';
 
 class ProjectDetails extends StatefulWidget {
@@ -121,14 +122,13 @@ class _ProjectDetailsState extends State<ProjectDetails> {
     if (isLoading || project == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    
     return Scaffold(
       appBar: AppBar(title: Text(project!.name)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            Text('Group: ${project!.groupName}', style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 8),
             Text('Budget: ₹${project!.budget.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
             Text('Expenses: ₹${project!.expenses.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16)),
@@ -166,4 +166,4 @@ class _ProjectDetailsState extends State<ProjectDetails> {
       ),
     );
   }
-} 
+}
