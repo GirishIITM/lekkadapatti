@@ -45,6 +45,8 @@ class _WorkState extends State<Work> {
                     label: Text(item),
                     selected: isSelected(item),
                     onSelected: (selected) => onSelected(selected, item),
+                    selectedColor: Colors.blue.withOpacity(0.3),
+                    checkmarkColor: Colors.blue,
                   ))
               .toList(),
         ),

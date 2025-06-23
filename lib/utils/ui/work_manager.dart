@@ -42,6 +42,7 @@ class WorkManager {
   DateTime currentDate;
   Map<String, String> workDetails = {};
   Map<String, Map<String, List<String>>> workDataPerDate = {};
+  Map<String, List<String>> groupWorkplacePerDate = {};
 
   WorkManager({required this.currentDate});
 
@@ -51,6 +52,7 @@ class WorkManager {
     await prefs.remove('names');
     await prefs.remove('projectTypes');
     await prefs.remove('projects');
+    await prefs.remove('groupWorkplacePerDate');
   }
 
   Future<void> loadDefaultData() async {
@@ -58,16 +60,19 @@ class WorkManager {
       final prefs = await SharedPreferences.getInstance();
       final savedProjectTypes = prefs.getString("projectTypes");
       final savedProject = prefs.getString("projects");
-      // final savedNames = prefs.getString("names");
+      final savedGroupWorkplacePerDate = prefs.getString("groupWorkplacePerDate");
 
-      // if (savedNames != null) {
-      // names = List<String>.from(jsonDecode(savedNames));
-      // }
       if (savedProjectTypes != null) {
         projectTypes = List<String>.from(jsonDecode(savedProjectTypes));
       }
       if (savedProject != null) {
         projects = List<String>.from(jsonDecode(savedProject));
+      }
+      if (savedGroupWorkplacePerDate != null) {
+        final Map<String, dynamic> decoded = jsonDecode(savedGroupWorkplacePerDate);
+        groupWorkplacePerDate = Map<String, List<String>>.from(
+          decoded.map((key, value) => MapEntry(key, List<String>.from(value))),
+        );
       }
     } catch (e) {
       errorLogger(e);
@@ -80,6 +85,7 @@ class WorkManager {
       await prefs.setString("names", json.encode(names));
       await prefs.setString("projectTypes", json.encode(projectTypes));
       await prefs.setString("projects", json.encode(projects));
+      await prefs.setString("groupWorkplacePerDate", json.encode(groupWorkplacePerDate));
     } catch (e) {
       errorLogger(e);
     }
@@ -103,16 +109,12 @@ class WorkManager {
       final formatedDate = formatDate(currentDate);
       if (workDataPerDate[formatedDate] == null) workDataPerDate[formatedDate] = {};
 
-      if (workDataPerDate[formatedDate] != null && workDataPerDate[formatedDate] != {}) {
-        workDataPerDate[formatedDate]?["selectedNames"] = selectedNames;
-        workDataPerDate[formatedDate]?["selectedProject"] = selectedProject;
-        workDataPerDate[formatedDate]?["selectedProjectTypes"] = selectedProjectTypes;
-        try {
-          await prefs.setString('workDataPerDate', json.encode(workDataPerDate));
-        } catch (e) {
-          errorLogger(e);
-        }
-      }
+      workDataPerDate[formatedDate]?["selectedNames"] = selectedNames;
+      workDataPerDate[formatedDate]?["selectedProject"] = selectedProject;
+      workDataPerDate[formatedDate]?["selectedProjectTypes"] = selectedProjectTypes;
+      
+      await prefs.setString('workDataPerDate', json.encode(workDataPerDate));
+      await saveData();
     } catch (e) {
       errorLogger(e);
     }
@@ -167,7 +169,6 @@ class WorkManager {
 
   void onProjectSelected(bool selected, String project, Function setState) {
     try {
-      selectedProject.clear();
       selected ? selectedProject.add(project) : selectedProject.remove(project);
       setState(() {});
       saveDataForCurrentDate(setState);
@@ -194,5 +195,32 @@ class WorkManager {
     } catch (e) {
       errorLogger(e);
     }
+  }
+
+  void onGroupWorkplaceSelected(bool selected, String groupName, String project, Function setState) {
+    try {
+      final dateKey = "${formatDate(currentDate)}_$groupName";
+      if (groupWorkplacePerDate[dateKey] == null) {
+        groupWorkplacePerDate[dateKey] = [];
+      }
+      
+      if (selected) {
+        if (!groupWorkplacePerDate[dateKey]!.contains(project)) {
+          groupWorkplacePerDate[dateKey]!.add(project);
+        }
+      } else {
+        groupWorkplacePerDate[dateKey]!.remove(project);
+      }
+      
+      setState(() {});
+      saveData();
+    } catch (e) {
+      errorLogger(e);
+    }
+  }
+
+  List<String> getGroupSelectedWorkplaces(String groupName) {
+    final dateKey = "${formatDate(currentDate)}_$groupName";
+    return groupWorkplacePerDate[dateKey] ?? [];
   }
 }

@@ -35,9 +35,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           Expanded(
             child: ListView(
               children: [
-                _buildNamesListView(),
-                const Divider(),
                 _buildGroupsListView(),
+                const Divider(),
+                _buildNamesListView(),
                 const Divider(),
                 _buildAddButtons(),
               ],
@@ -116,7 +116,40 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             setState: setState,
             status: attendanceManager.status,
             groupName: group,
+            currentDate: attendanceManager.currentDate,
           ),
+        );
+      },
+    );
+  }
+
+  Future<String?> _showProjectInputDialog(BuildContext context) async {
+    String project = "";
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter Project Name'),
+          content: TextField(
+            onChanged: (value) {
+              project = value;
+            },
+            decoration: const InputDecoration(hintText: "Enter project name here"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(project);
+              },
+              child: const Text('Add'),
+            ),
+          ],
         );
       },
     );
@@ -130,7 +163,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           child: ElevatedButton(
             onPressed: () async {
               String? newName = await _showNameInputDialog(context);
-              attendanceManager.addName(name: newName!, setState: setState);
+              if (newName != null && newName.isNotEmpty) {
+                attendanceManager.addName(name: newName, setState: setState);
+              }
             },
             child: const Text('Add Name'),
           ),
@@ -145,6 +180,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               }
             },
             child: const Text('Add Group'),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton(
+            onPressed: () async {
+              String? projectName = await _showProjectInputDialog(context);
+              if (projectName != null && projectName.isNotEmpty) {
+                attendanceManager.addProject(project: projectName, setState: setState);
+              }
+            },
+            child: const Text('Add Workplace'),
           ),
         ),
       ],

@@ -25,9 +25,18 @@ class AttendanceManager {
   Map<String, List<Map<String, dynamic>>> paymentHistory = {};
   Map<String, List<Map<String, dynamic>>> groupPaymentHistory = {};
   Map<String, Map<String, int>> groupRates = {};
+  
+  List<String> projects = [
+    "Devara Mundige (ದೇವರಮುಂಡಿಗೆ)",
+    "Ekaana (ಏಕಾನ)",
+    "Chapegaali (ಚಾಪೆಗಾಳಿ)",
+    "Nammane (ನಮ್ಮನೆ)",
+    "MatthiiHakkalu (ಮತ್ತಿಹಕ್ಕಲು)",
+    "Dehalli (ದೇಹಳ್ಳಿ)",
+  ];
+  Map<String, Map<String, List<String>>> groupSelectedProjectsPerDate = {};
 
   AttendanceManager({required this.currentDate}) {
-    // Initialize default rates for existing groups
     for (String group in groups) {
       groupRates[group] = {"male": 200, "female": 200};
     }
@@ -42,6 +51,8 @@ class AttendanceManager {
     await prefs.remove('paymentHistory');
     await prefs.remove('groupPaymentHistory');
     await prefs.remove('groupRates');
+    await prefs.remove('projects');
+    await prefs.remove('groupSelectedProjectsPerDate');
   }
 
   Future<void> loadAttendanceDataPerDate({required Function setState}) async {
@@ -54,6 +65,8 @@ class AttendanceManager {
       final savedPaymentHistory = prefs.getString("paymentHistory");
       final savedGroupPaymentHistory = prefs.getString("groupPaymentHistory");
       final savedGroupRates = prefs.getString("groupRates");
+      final savedProjects = prefs.getString("projects");
+      final savedGroupSelectedProjectsPerDate = prefs.getString("groupSelectedProjectsPerDate");
 
       if (savedNames != null) {
         names = List<String>.from(jsonDecode(savedNames));
@@ -124,10 +137,43 @@ class AttendanceManager {
         );
       }
 
-      // Initialize rates for groups that don't have rates set
+      if (savedProjects != null) {
+        projects = List<String>.from(jsonDecode(savedProjects));
+      }
+
+      if (savedGroupSelectedProjectsPerDate != null) {
+        final Map<String, dynamic> decodedGroupProjectsPerDate = jsonDecode(savedGroupSelectedProjectsPerDate);
+        groupSelectedProjectsPerDate = Map<String, Map<String, List<String>>>.from(
+          decodedGroupProjectsPerDate.map(
+            (dateKey, dateValue) => MapEntry(
+              dateKey,
+              Map<String, List<String>>.from(
+                dateValue.map(
+                  (groupKey, groupValue) => MapEntry(
+                    groupKey,
+                    List<String>.from(groupValue),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
       for (String group in groups) {
         if (!groupRates.containsKey(group)) {
           groupRates[group] = {"male": 200, "female": 200};
+        }
+      }
+
+      // Initialize selected projects structure
+      for (String group in groups) {
+        final dateKey = formatDate(currentDate);
+        if (groupSelectedProjectsPerDate[dateKey] == null) {
+          groupSelectedProjectsPerDate[dateKey] = {};
+        }
+        if (!groupSelectedProjectsPerDate[dateKey]!.containsKey(group)) {
+          groupSelectedProjectsPerDate[dateKey]![group] = [];
         }
       }
 
@@ -152,6 +198,8 @@ class AttendanceManager {
       await prefs.setString("paymentHistory", jsonEncode(paymentHistory));
       await prefs.setString("groupPaymentHistory", jsonEncode(groupPaymentHistory));
       await prefs.setString("groupRates", jsonEncode(groupRates));
+      await prefs.setString("projects", jsonEncode(projects));
+      await prefs.setString("groupSelectedProjectsPerDate", jsonEncode(groupSelectedProjectsPerDate));
     } on Exception catch (e) {
       errorLogger(e);
     }
@@ -194,11 +242,19 @@ class AttendanceManager {
     setState(() {
       groups.remove(groupName);
       status.remove(groupName);
+      groupRates.remove(groupName);
+      // Remove group from all dates
+      for (var dateKey in groupSelectedProjectsPerDate.keys) {
+        groupSelectedProjectsPerDate[dateKey]?.remove(groupName);
+      }
     });
     saveAttendanceAndGroupData();
   }
 
   void onIncrement(String groupName, String type, int count, Function setState) {
+    if (status[groupName] == null) {
+      status[groupName] = {"male": 0, "female": 0};
+    }
     status[groupName]?[type] = count + 1;
     if (groupDataPerDate[formatDate(currentDate)] == null) {
       groupDataPerDate[formatDate(currentDate)] = {};
@@ -210,6 +266,9 @@ class AttendanceManager {
   }
 
   void onDecrement(String groupName, String type, int count, Function setState) {
+    if (status[groupName] == null) {
+      status[groupName] = {"male": 0, "female": 0};
+    }
     if (count > 0) {
       status[groupName]?[type] = count - 1;
       if (groupDataPerDate[formatDate(currentDate)] == null) {
@@ -460,6 +519,42 @@ class AttendanceManager {
 
   Map<String, int> getGroupRates(String groupName) {
     return groupRates[groupName] ?? {"male": 200, "female": 200};
+  }
+
+  void addProject({required String project, required Function setState}) {
+    if (projects.contains(project) || project.isEmpty) return;
+    setState(() {
+      projects.add(project);
+    });
+    saveAttendanceAndGroupData();
+  }
+
+  void onGroupProjectSelected(bool selected, String groupName, String project, Function setState) {
+    final dateKey = formatDate(currentDate);
+    
+    if (groupSelectedProjectsPerDate[dateKey] == null) {
+      groupSelectedProjectsPerDate[dateKey] = {};
+    }
+    
+    if (groupSelectedProjectsPerDate[dateKey]![groupName] == null) {
+      groupSelectedProjectsPerDate[dateKey]![groupName] = [];
+    }
+    
+    setState(() {
+      if (selected) {
+        if (!groupSelectedProjectsPerDate[dateKey]![groupName]!.contains(project)) {
+          groupSelectedProjectsPerDate[dateKey]![groupName]!.add(project);
+        }
+      } else {
+        groupSelectedProjectsPerDate[dateKey]![groupName]!.remove(project);
+      }
+    });
+    saveAttendanceAndGroupData();
+  }
+
+  List<String> getGroupSelectedProjects(String groupName) {
+    final dateKey = formatDate(currentDate);
+    return groupSelectedProjectsPerDate[dateKey]?[groupName] ?? [];
   }
 }
 
