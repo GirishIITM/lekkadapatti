@@ -36,6 +36,20 @@ class AttendanceManager {
   ];
   Map<String, Map<String, List<String>>> groupSelectedProjectsPerDate = {};
 
+  // Add work types and selected work types per group per date
+  List<String> workTypes = [
+    "Kutare kelasa (ಕುಟಾರೆ ಕೆಲಸ)",
+    "Shashi Neduvudu (ಶಶಿ ನೆಡುವುದು)",
+    "Katti Kelasa (ಕತ್ತಿ ಕೆಲಸ)",
+    "Line out (ಲೈನ್ ಔಟ್)",
+    "Spray (ಸ್ಪ್ರೇ)",
+    "Jeevamruta (ಜೀವಾಮೃತ)",
+    "Mannu kelasa (ಮಣ್ಣು ಕೆಲಸ)",
+    "Maddu hodeyudu (ಮದ್ದು ಹೊಡೆಯುದು)",
+    "Kone Koyyudu (ಕೊನೆ ಕೊಯ್ಯುದು)",
+  ];
+  Map<String, Map<String, List<String>>> groupSelectedWorkTypesPerDate = {};
+
   AttendanceManager({required this.currentDate}) {
     for (String group in groups) {
       groupRates[group] = {"male": 200, "female": 200};
@@ -53,6 +67,8 @@ class AttendanceManager {
     await prefs.remove('groupRates');
     await prefs.remove('projects');
     await prefs.remove('groupSelectedProjectsPerDate');
+    await prefs.remove('workTypes');
+    await prefs.remove('groupSelectedWorkTypesPerDate');
   }
 
   Future<void> loadAttendanceDataPerDate({required Function setState}) async {
@@ -67,6 +83,8 @@ class AttendanceManager {
       final savedGroupRates = prefs.getString("groupRates");
       final savedProjects = prefs.getString("projects");
       final savedGroupSelectedProjectsPerDate = prefs.getString("groupSelectedProjectsPerDate");
+      final savedWorkTypes = prefs.getString("workTypes");
+      final savedGroupSelectedWorkTypesPerDate = prefs.getString("groupSelectedWorkTypesPerDate");
 
       if (savedNames != null) {
         names = List<String>.from(jsonDecode(savedNames));
@@ -160,6 +178,28 @@ class AttendanceManager {
         );
       }
 
+      if (savedWorkTypes != null) {
+        workTypes = List<String>.from(jsonDecode(savedWorkTypes));
+      }
+      if (savedGroupSelectedWorkTypesPerDate != null) {
+        final Map<String, dynamic> decodedGroupWorkTypesPerDate = jsonDecode(savedGroupSelectedWorkTypesPerDate);
+        groupSelectedWorkTypesPerDate = Map<String, Map<String, List<String>>>.from(
+          decodedGroupWorkTypesPerDate.map(
+            (dateKey, dateValue) => MapEntry(
+              dateKey,
+              Map<String, List<String>>.from(
+                dateValue.map(
+                  (groupKey, groupValue) => MapEntry(
+                    groupKey,
+                    List<String>.from(groupValue),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
       for (String group in groups) {
         if (!groupRates.containsKey(group)) {
           groupRates[group] = {"male": 200, "female": 200};
@@ -174,6 +214,17 @@ class AttendanceManager {
         }
         if (!groupSelectedProjectsPerDate[dateKey]!.containsKey(group)) {
           groupSelectedProjectsPerDate[dateKey]![group] = [];
+        }
+      }
+
+      // Initialize selected work types structure
+      for (String group in groups) {
+        final dateKey = formatDate(currentDate);
+        if (groupSelectedWorkTypesPerDate[dateKey] == null) {
+          groupSelectedWorkTypesPerDate[dateKey] = {};
+        }
+        if (!groupSelectedWorkTypesPerDate[dateKey]!.containsKey(group)) {
+          groupSelectedWorkTypesPerDate[dateKey]![group] = [];
         }
       }
 
@@ -200,6 +251,8 @@ class AttendanceManager {
       await prefs.setString("groupRates", jsonEncode(groupRates));
       await prefs.setString("projects", jsonEncode(projects));
       await prefs.setString("groupSelectedProjectsPerDate", jsonEncode(groupSelectedProjectsPerDate));
+      await prefs.setString("workTypes", jsonEncode(workTypes));
+      await prefs.setString("groupSelectedWorkTypesPerDate", jsonEncode(groupSelectedWorkTypesPerDate));
     } on Exception catch (e) {
       errorLogger(e);
     }
@@ -555,6 +608,40 @@ class AttendanceManager {
   List<String> getGroupSelectedProjects(String groupName) {
     final dateKey = formatDate(currentDate);
     return groupSelectedProjectsPerDate[dateKey]?[groupName] ?? [];
+  }
+
+  // Work type selection methods
+  List<String> getGroupSelectedWorkTypes(String groupName) {
+    final dateKey = formatDate(currentDate);
+    return groupSelectedWorkTypesPerDate[dateKey]?[groupName] ?? [];
+  }
+
+  void onGroupWorkTypeSelected(bool selected, String groupName, String workType, Function setState) {
+    final dateKey = formatDate(currentDate);
+    if (groupSelectedWorkTypesPerDate[dateKey] == null) {
+      groupSelectedWorkTypesPerDate[dateKey] = {};
+    }
+    if (groupSelectedWorkTypesPerDate[dateKey]![groupName] == null) {
+      groupSelectedWorkTypesPerDate[dateKey]![groupName] = [];
+    }
+    setState(() {
+      if (selected) {
+        if (!groupSelectedWorkTypesPerDate[dateKey]![groupName]!.contains(workType)) {
+          groupSelectedWorkTypesPerDate[dateKey]![groupName]!.add(workType);
+        }
+      } else {
+        groupSelectedWorkTypesPerDate[dateKey]![groupName]!.remove(workType);
+      }
+    });
+    saveAttendanceAndGroupData();
+  }
+
+  void addWorkType({required String workType, required Function setState}) {
+    if (workTypes.contains(workType) || workType.isEmpty) return;
+    setState(() {
+      workTypes.add(workType);
+    });
+    saveAttendanceAndGroupData();
   }
 }
 
